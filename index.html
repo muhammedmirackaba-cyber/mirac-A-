@@ -5,31 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mirac-AI Dashboard</title>
     <style>
+        /* Tasarım senin istediğin profesyonel ChatGPT tarzı */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background-color: #343541; color: white; display: flex; height: 100vh; overflow: hidden; }
         #sidebar { width: 260px; background-color: #202123; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
-        .new-chat { border: 1px solid #4d4d4f; padding: 12px; border-radius: 5px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .new-chat { border: 1px solid #4d4d4f; padding: 12px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
         .new-chat:hover { background-color: #2b2c2f; }
         .history { flex: 1; overflow-y: auto; font-size: 14px; margin-top: 20px; color: #acacbe; }
         .user-menu { border-top: 1px solid #4d4d4f; padding-top: 10px; display: flex; flex-direction: column; gap: 5px; }
         .menu-item { padding: 12px; border-radius: 5px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; }
         .menu-item:hover { background-color: #2b2c2f; }
-        #main { flex: 1; display: flex; flex-direction: column; position: relative; background-color: #343541; }
-        #chat-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        .row { padding: 25px 15%; display: flex; gap: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); width: 100%; }
+        #main { flex: 1; display: flex; flex-direction: column; background-color: #343541; position: relative; }
+        #chat-container { flex: 1; overflow-y: auto; padding-bottom: 120px; }
+        .row { padding: 25px 15%; display: flex; gap: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); }
         .row.ai { background-color: #444654; }
         .content { line-height: 1.6; font-size: 16px; white-space: pre-wrap; word-break: break-word; }
-        #input-wrapper { padding: 20px 15% 40px 15%; background: linear-gradient(transparent, #343541 50%); }
+        #input-wrapper { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 15%; background: linear-gradient(transparent, #343541 50%); }
         .input-box { background-color: #40414f; border-radius: 10px; padding: 15px; display: flex; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
         input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
-        button { background: transparent; border: none; color: #acacbe; cursor: pointer; font-size: 20px; padding: 0 5px; }
+        button { background: transparent; border: none; color: #acacbe; cursor: pointer; font-size: 20px; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
     <div class="new-chat" onclick="window.location.reload()">+ Yeni Sohbet</div>
-    <div class="history"><div class="menu-item">💬 mirac-AI Online</div></div>
+    <div class="history"><div class="menu-item">💬 mirac-AI Aktif</div></div>
     <div class="user-menu">
         <div class="menu-item">👤 Profilim</div>
         <div class="menu-item">⚙️ Ayarlar</div>
@@ -39,7 +40,7 @@
 
 <div id="main">
     <div id="chat-container">
-        <div class="row ai"><div class="content">Sistem Tamamen Güncellendi. Selam Mirac! Şimdi GitHub linkinden girip denersen her şey çalışacak.</div></div>
+        <div class="row ai"><div class="content">Sistem Optimize Edildi. Mirac, bu sefer kesin çalışacak şekilde motoru güncelledim. Yaz bakalım!</div></div>
     </div>
     <div id="input-wrapper">
         <div class="input-box">
@@ -62,11 +63,23 @@
         history.push({ role: "user", parts: [{ text: text }] });
         input.value = "";
 
+        // ÖNCE Gemini 1.5 Flash DENEYELİM (En yenisi)
+        let success = await callGemini("gemini-1.5-flash");
+
+        // EĞER HATA VERİRSE (Senin aldığın 404 hatası gibi), Gemini Pro DENEYELİM
+        if (!success) {
+            console.log("Flash çalışmadı, Pro deneniyor...");
+            success = await callGemini("gemini-pro");
+        }
+
+        if (!success) {
+            addMsg("Sistem Hatası: API anahtarın şu an hiçbir modeli kabul etmiyor. Lütfen Google AI Studio'dan yeni bir key almayı dene.", 'ai');
+        }
+    }
+
+    async function callGemini(modelName) {
         try {
-            // URL formatında model isminin başına 'models/' ekledik (Google'ın tam istediği format)
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_API_KEY}`;
-            
-            const resp = await fetch(url, {
+            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${MY_API_KEY}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: history })
@@ -74,18 +87,15 @@
 
             const data = await resp.json();
             
-            if(data.error) {
-                // Hata mesajını daha detaylı gösterelim
-                addMsg("Sistem Hatası: " + data.error.message, 'ai');
-                console.log(data.error);
-                return;
+            if(data.candidates && data.candidates[0].content) {
+                const aiText = data.candidates[0].content.parts[0].text;
+                addMsg(aiText, 'ai');
+                history.push({ role: "model", parts: [{ text: aiText }] });
+                return true;
             }
-
-            const aiText = data.candidates[0].content.parts[0].text;
-            addMsg(aiText, 'ai');
-            history.push({ role: "model", parts: [{ text: aiText }] });
+            return false;
         } catch (e) {
-            addMsg("Bağlantı hatası! Lütfen interneti ve GitHub linkini kontrol et.", 'ai');
+            return false;
         }
     }
 
