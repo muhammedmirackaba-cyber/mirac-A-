@@ -3,77 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mirkay-AI | Premium</title>
+    <title>Mirkay-AI | Pro</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <style>
-        :root { --bg: #050505; --accent: #ffffff; --card: #111111; }
+        :root { --bg: #000; --accent: #fff; --card: #111; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
         
-        /* Giriş Kartı */
-        .auth-card { background: var(--card); padding: 40px; border-radius: 24px; border: 1px solid #222; width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        input { width: 100%; padding: 14px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--accent); }
-        button.primary { width: 100%; padding: 14px; background: #fff; color: #000; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .auth-card { background: var(--card); padding: 40px; border-radius: 20px; border: 1px solid #222; width: 340px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; outline: none; }
+        button.primary { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
-        /* Ana Uygulama */
         #chat-app { display: none; width: 100%; height: 100vh; flex-direction: column; }
+        .header { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
         
-        /* Üst Menü */
-        .header { padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; background: rgba(10,10,10,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #222; position: relative; }
-        .logo { font-weight: 900; letter-spacing: 3px; font-size: 20px; }
-
         /* Profil Menüsü */
         .profile-container { position: relative; }
-        .profile-btn { width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #000; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .dropdown { position: absolute; top: 50px; right: 0; background: #1a1a1a; border: 1px solid #333; border-radius: 12px; width: 180px; display: none; flex-direction: column; overflow: hidden; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .p-btn { width: 35px; height: 35px; border-radius: 50%; background: #fff; color: #000; border: none; font-weight: bold; cursor: pointer; }
+        .dropdown { position: absolute; top: 45px; right: 0; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; width: 160px; display: none; flex-direction: column; z-index: 100; }
         .dropdown.active { display: flex; }
-        .dropdown-item { padding: 12px 15px; font-size: 14px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #222; text-align: left; background: none; color: #fff; border: none; width: 100%; }
-        .dropdown-item:hover { background: #333; }
-        .dropdown-item.logout { color: #ff4d4d; }
+        .drop-item { padding: 10px; font-size: 13px; cursor: pointer; background: none; color: #fff; border: none; text-align: left; }
+        .drop-item:hover { background: #222; }
 
-        /* Chat Alanı */
-        #chat-box { flex: 1; overflow-y: auto; padding: 40px 20%; display: flex; flex-direction: column; gap: 20px; }
-        .msg { padding: 18px; border-radius: 18px; max-width: 80%; line-height: 1.6; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .user { background: #222; align-self: flex-end; border: 1px solid #333; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 15px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
+        .user { background: #222; align-self: flex-end; }
         .ai { background: #fff; color: #000; align-self: flex-start; }
 
-        /* Mesaj Girişi */
-        .input-area { padding: 30px 20%; background: linear-gradient(transparent, var(--bg)); }
-        .input-box { background: #111; display: flex; padding: 8px 20px; border-radius: 40px; border: 1px solid #333; }
-        .input-box input { border: none; background: transparent; margin: 0; padding: 10px; flex: 1; }
+        .input-area { padding: 20px 15%; background: #000; border-top: 1px solid #222; }
+        .input-box { background: #111; display: flex; padding: 5px 15px; border-radius: 30px; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen" class="auth-card">
-    <div class="logo">MIRKAY-AI</div>
-    <p style="color: #666; font-size: 12px; margin-bottom: 10px;">PRO ACCESS</p>
-    <input type="text" id="email" placeholder="Kullanıcı Adı (örn: ali@mirkay.com)">
+    <div style="font-size: 22px; font-weight: 900; letter-spacing: 2px;">MIRKAY-AI</div>
+    <p style="color: #666; font-size: 11px; margin-bottom: 10px;">HIZLI PRO ERİŞİMİ</p>
+    <input type="email" id="email" placeholder="E-posta veya Kullanıcı Adı">
     <input type="password" id="password" placeholder="Şifre">
-    <button class="primary" onclick="handleAuth(false)">Hesap Oluştur</button>
-    <button style="background:none; color:#fff; border:1px solid #333; margin-top:10px; cursor:pointer;" onclick="handleAuth(true)">Giriş Yap</button>
+    <button class="primary" onclick="handleAuth(false)">Kayıt Ol</button>
+    <button style="background:none; color:#fff; border:1px solid #333; margin-top:8px; width:100%; padding:10px; border-radius:10px; cursor:pointer;" onclick="handleAuth(true)">Giriş Yap</button>
 </div>
 
 <div id="chat-app">
     <div class="header">
-        <div class="logo">MIRKAY-AI <span style="font-size: 10px; color: #555;">v2.0</span></div>
+        <div style="font-weight: 900;">MIRKAY-AI</div>
         <div class="profile-container">
-            <button class="profile-btn" id="p-initial" onclick="toggleDropdown()">M</button>
-            <div class="dropdown" id="myDropdown">
-                <button class="dropdown-item" onclick="linkEmail()">📧 E-posta Bağla</button>
-                <button class="dropdown-item logout" onclick="logout()">🚪 Çıkış Yap</button>
+            <button class="p-btn" id="p-icon" onclick="toggleMenu()">M</button>
+            <div class="dropdown" id="dropMenu">
+                <button class="drop-item" onclick="resendMail()">📧 Onay Kodu Gönder</button>
+                <button class="drop-item" style="color:#ff4d4d;" onclick="logout()">🚪 Çıkış Yap</button>
             </div>
         </div>
     </div>
-    
     <div id="chat-box"></div>
-
     <div class="input-area">
         <div class="input-box">
-            <input type="text" id="userInput" placeholder="Bir şeyler sor..." onkeypress="if(event.key==='Enter') send()">
-            <button onclick="send()" style="background:white; border:none; border-radius:50%; width:35px; height:35px; cursor:pointer; font-weight:bold;">↑</button>
+            <input type="text" id="uInp" placeholder="Bir şeyler yaz..." style="flex:1; background:none; border:none; color:#fff; padding:10px; outline:none;" onkeypress="if(event.key==='Enter') send()">
+            <button onclick="send()" style="background:#fff; border:none; border-radius:50%; width:30px; height:30px; margin:5px; cursor:pointer;">↑</button>
         </div>
     </div>
 </div>
@@ -93,7 +80,7 @@
     // GROQ KEYİN
     const M_KEY = "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";
 
-    function toggleDropdown() { document.getElementById("myDropdown").classList.toggle("active"); }
+    function toggleMenu() { document.getElementById("dropMenu").classList.toggle("active"); }
 
     async function handleAuth(isLogin) {
         const email = document.getElementById("email").value;
@@ -101,17 +88,18 @@
         try {
             if(isLogin) await firebase.auth().signInWithEmailAndPassword(email, password);
             else {
-                await firebase.auth().createUserWithEmailAndPassword(email, password);
-                alert("Kayıt Başarılı!");
+                const res = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                await res.user.sendEmailVerification();
+                alert("Kayıt başarılı! Doğrulama maili Spam klasörüne düşmüş olabilir.");
             }
-        } catch(e) { alert(e.message); }
+        } catch(e) { alert("Hata: " + e.message); }
     }
 
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
             document.getElementById("auth-screen").style.display = "none";
             document.getElementById("chat-app").style.display = "flex";
-            document.getElementById("p-initial").innerText = user.email[0].toUpperCase();
+            document.getElementById("p-icon").innerText = user.email[0].toUpperCase();
         } else {
             document.getElementById("auth-screen").style.display = "block";
             document.getElementById("chat-app").style.display = "none";
@@ -119,45 +107,40 @@
     });
 
     function logout() { firebase.auth().signOut(); }
-
-    function linkEmail() {
-        const newMail = prompt("Bağlamak istediğiniz gerçek Gmail adresinizi girin:");
-        if(newMail) {
-            firebase.auth().currentUser.updateEmail(newMail)
-                .then(() => alert("E-posta başarıyla güncellendi!"))
-                .catch(e => alert("Hata: " + e.message));
-        }
+    function resendMail() { 
+        firebase.auth().currentUser.sendEmailVerification()
+            .then(() => alert("Kod tekrar gönderildi. Spam kutusuna bakmayı unutma!")); 
     }
 
     async function send() {
-        const input = document.getElementById("userInput");
-        const text = input.value.trim();
-        if(!text) return;
+        const inp = document.getElementById("uInp");
+        const txt = inp.value.trim();
+        if(!txt) return;
 
-        addMsg("user", text);
-        input.value = "";
+        addMsg("user", txt);
+        inp.value = "";
 
         try {
-            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${M_KEY}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
                     model: "llama-3.1-8b-instant",
-                    messages: [{ role: "system", content: "Sen Mirkay-AI'sın." }, { role: "user", content: text }]
+                    messages: [{role: "system", content: "Sen Mirkay-AI'sın."}, {role: "user", content: txt}]
                 })
             });
-            const data = await response.json();
-            addMsg("ai", data.choices[0].message.content);
-        } catch(e) { addMsg("ai", "Hata oluştu!"); }
+            const d = await r.json();
+            addMsg("ai", d.choices[0].message.content);
+        } catch(e) { addMsg("ai", "Bağlantı hatası!"); }
     }
 
     function addMsg(role, text) {
-        const box = document.getElementById("chat-box");
-        const div = document.createElement("div");
-        div.className = `msg ${role}`;
-        div.innerHTML = `<b>${role==='user'?'Sen':'Mirkay-AI'}:</b><br>${text}`;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
+        const b = document.getElementById("chat-box");
+        const d = document.createElement("div");
+        d.className = `msg ${role}`;
+        d.innerHTML = `<b>${role==='user'?'Sen':'Mirkay-AI'}:</b><br>${text}`;
+        b.appendChild(d);
+        b.scrollTop = b.scrollHeight;
     }
 </script>
 </body>
