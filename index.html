@@ -16,7 +16,7 @@
         /* Yan Panel (Sidebar) */
         #sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; transition: 0.3s; position: relative; border-right: 1px solid #333; }
         #sidebar.closed { width: 0; overflow: hidden; border: none; }
-        .sidebar-content { padding: 15px; flex: 1; }
+        .sidebar-content { padding: 15px; flex: 1; overflow-y: auto; }
         .history-item { padding: 10px; margin-bottom: 5px; background: #222; border-radius: 5px; cursor: pointer; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .history-item:hover { background: #333; }
 
@@ -35,9 +35,9 @@
         .input-wrapper { position: absolute; bottom: 0; width: 100%; padding: 20px 15%; background: linear-gradient(transparent, var(--bg) 50%); }
         .input-box { background: #343541; display: flex; padding: 10px; border-radius: 10px; border: 1px solid #555; }
         input { flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; }
-        button.send { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        button.send { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
-        input.key-input { width: 100%; padding: 12px; margin: 20px 0; border-radius: 5px; border: 1px solid #444; background: #1a1a1b; color: white; }
+        input.key-input { width: 100%; padding: 12px; margin: 20px 0; border-radius: 5px; border: 1px solid #444; background: #1a1a1b; color: white; outline: none; }
     </style>
 </head>
 <body>
@@ -58,7 +58,7 @@
     <div class="sidebar-content">
         <h3 style="margin-bottom: 20px; font-size: 16px;">Sohbet Geçmişi</h3>
         <div id="history-list"></div>
-        <button onclick="clearHistory()" style="margin-top:20px; background:none; color:#888; border:none; cursor:pointer; font-size:12px;">Geçmişi Temizle</button>
+        <button onclick="clearHistory()" style="margin-top:20px; background:none; color:#888; border:none; cursor:pointer; font-size:12px; width:100%">Geçmişi Temizle</button>
     </div>
 </div>
 
@@ -73,27 +73,28 @@
 </div>
 
 <script>
-    let API_KEY = localStorage.getItem("mirac_groq_final");
-    let history = JSON.parse(localStorage.getItem("chat_history") || "[]");
+    let API_KEY = localStorage.getItem("mirac_groq_final_v2");
+    let chatHistory = JSON.parse(localStorage.getItem("chat_history_v2") || "[]");
 
     if (API_KEY) {
         document.getElementById("login-screen").style.display = "none";
         renderHistory();
+        renderChatFromHistory();
     }
 
     function login() {
         const key = document.getElementById("api-key").value.trim();
         if (key.startsWith("gsk_")) {
-            localStorage.setItem("mirac_groq_final", key);
+            localStorage.setItem("mirac_groq_final_v2", key);
             location.reload();
-        } else { alert("Geçersiz anahtar!"); }
+        } else { alert("Hata: Anahtar 'gsk_' ile başlamalı!"); }
     }
 
     function toggleSidebar() {
         document.getElementById("sidebar").classList.toggle("closed");
     }
 
-    function addMsg(role, text) {
+    function addMsgToScreen(role, text) {
         const container = document.getElementById("chat-container");
         const div = document.createElement("div");
         div.className = `row ${role}`;
@@ -107,10 +108,11 @@
         const text = input.value.trim();
         if (!text) return;
 
-        addMsg("user", text);
+        addMsgToScreen("user", text);
         input.value = "";
 
         try {
+            // HATA 400'Ü ÖNLEMEK İÇIN JSON VE URL DÜZELTİLDİ
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -118,35 +120,55 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "llama3-8b-8192",
-                    messages: [{ role: "user", content: text }]
+                    model: "llama3-8b-8192", // Çok hızlı ve ücretsiz model
+                    messages: [{ role: "user", content: text }],
+                    temperature: 0.7 // Cevap çeşitliliği için standart ayar
                 })
             });
 
             const data = await response.json();
-            const reply = data.choices[0].message.content;
-            addMsg("ai", reply);
 
-            // Geçmişe Kaydet
-            history.unshift({ q: text, a: reply.substring(0, 30) + "..." });
-            if (history.length > 10) history.pop();
-            localStorage.setItem("chat_history", JSON.stringify(history));
-            renderHistory();
+            if (data.error) {
+                // Eğer yine hata gelirse detayını ekrana bas
+                addMsgToScreen("ai", `<span style="color:#ff6b6b;">Hata ${data.error.code}:</span> ${data.error.message}`);
+            } else {
+                const reply = data.choices[0].message.content;
+                addMsgToScreen("ai", reply);
+
+                // Geçmişe Kaydet
+                chatHistory.push({ type: "user", text: text });
+                chatHistory.push({ type: "ai", text: reply });
+                // Son 20 mesajı sakla
+                if (chatHistory.length > 40) chatHistory.shift(); 
+                localStorage.setItem("chat_history_v2", JSON.stringify(chatHistory));
+                renderHistory();
+            }
 
         } catch (e) {
-            addMsg("ai", "Hata: Bağlantı kurulamadı.");
+            addMsgToScreen("ai", "Sistem Hatası: Bağlantı kurulamadı.");
         }
     }
 
     function renderHistory() {
         const list = document.getElementById("history-list");
-        list.innerHTML = history.map(item => `<div class="history-item">${item.q}</div>`).join("");
+        list.innerHTML = "";
+        const userMsgs = chatHistory.filter(item => item.type === "user");
+        userMsgs.reverse().slice(0, 10).forEach(item => {
+            list.innerHTML += `<div class="history-item">${item.text}</div>`;
+        });
+    }
+
+    function renderChatFromHistory() {
+        document.getElementById("chat-container").innerHTML = "";
+        chatHistory.forEach(item => {
+            addMsgToScreen(item.type, item.text);
+        });
     }
 
     function clearHistory() {
-        localStorage.removeItem("chat_history");
-        history = [];
-        renderHistory();
+        localStorage.removeItem("chat_history_v2");
+        chatHistory = [];
+        location.reload();
     }
 </script>
 </body>
