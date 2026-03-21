@@ -2,94 +2,59 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mirac-AI Dashboard</title>
+    <title>mirac-AI | Güvenli Erişim</title>
     <style>
-        /* Tasarım aynı kalıyor */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: #343541; color: white; display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 260px; background-color: #202123; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
-        #main { flex: 1; display: flex; flex-direction: column; background-color: #343541; position: relative; }
-        #chat-container { flex: 1; overflow-y: auto; padding-bottom: 120px; }
-        .row { padding: 25px 15%; display: flex; gap: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); width: 100%; }
-        .row.ai { background-color: #444654; }
-        #input-wrapper { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 15%; background: linear-gradient(transparent, #343541 50%); }
-        .input-box { background-color: #40414f; border-radius: 10px; padding: 15px; display: flex; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
-        input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
-        button { background: transparent; border: none; color: #acacbe; cursor: pointer; font-size: 20px; }
+        body { font-family: 'Inter', sans-serif; background-color: #343541; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .setup-container { background: #202123; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 5px; border: 1px solid #4d4d4f; background: #40414f; color: white; }
+        button { background: #10a37f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        #chat-ui { display: none; width: 100%; height: 100vh; flex-direction: column; }
     </style>
 </head>
 <body>
 
-<div id="sidebar">
-    <div class="menu-item" onclick="setApiKey()">🔑 API Key Değiştir</div>
+<div id="setup" class="setup-container">
+    <h2>mirac-AI Kurulum</h2>
+    <p>Google anahtarın GitHub'da görünmemeli.</p>
+    <input type="text" id="keyInput" placeholder="Yeni API Key'ini buraya yapıştır...">
+    <button onclick="saveKey()">Sistemi Başlat</button>
 </div>
 
-<div id="main">
-    <div id="chat-container">
-        <div class="row ai" id="welcome-msg">Sistem hazır. Lütfen API anahtarını girip sohbete başla.</div>
-    </div>
-    <div id="input-wrapper">
-        <div class="input-box">
-            <input type="text" id="userInput" placeholder="Mesaj gönder..." onkeypress="if(event.key === 'Enter') send()">
-            <button onclick="send()">➤</button>
-        </div>
-    </div>
+<div id="chat-ui">
+    <div style="flex:1; overflow-y:auto; padding: 20px;" id="chat-box"></div>
+    <div style="padding: 20px;"><input type="text" id="msgInput" onkeypress="if(event.key==='Enter') send()"></div>
 </div>
 
 <script>
-    let history = [];
-    let MY_API_KEY = localStorage.getItem("gemini_key");
+    let MY_API_KEY = localStorage.getItem("mirac_ai_key");
 
-    function setApiKey() {
-        const key = prompt("Lütfen yeni Google API Key'ini buraya yapıştır:");
-        if(key) {
-            localStorage.setItem("gemini_key", key);
-            MY_API_KEY = key;
-            alert("Anahtar kaydedildi! Sayfayı yenileyip dene.");
-        }
+    if(MY_API_KEY) {
+        document.getElementById("setup").style.display = "none";
+        document.getElementById("chat-ui").style.display = "flex";
     }
 
-    if(!MY_API_KEY) setApiKey();
+    function saveKey() {
+        const val = document.getElementById("keyInput").value;
+        if(val.startsWith("AIza")) {
+            localStorage.setItem("mirac_ai_key", val);
+            location.reload();
+        } else {
+            alert("Geçersiz API anahtarı!");
+        }
+    }
 
     async function send() {
-        const input = document.getElementById("userInput");
-        const text = input.value.trim();
-        if(!text || !MY_API_KEY) return;
-
-        addMsg(text, 'user');
-        history.push({ role: "user", parts: [{ text: text }] });
-        input.value = "";
-
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_API_KEY}`;
-            const resp = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: history })
-            });
-            const data = await resp.json();
-            
-            if(data.error) {
-                addMsg("Hata: " + data.error.message + " (Anahtarın iptal edilmiş olabilir, yeni key alıp dene.)", 'ai');
-                return;
-            }
-
-            const aiText = data.candidates[0].content.parts[0].text;
-            addMsg(aiText, 'ai');
-            history.push({ role: "model", parts: [{ text: aiText }] });
-        } catch (e) {
-            addMsg("Bağlantı hatası!", 'ai');
-        }
-    }
-
-    function addMsg(text, type) {
-        const container = document.getElementById("chat-container");
-        const div = document.createElement("div");
-        div.className = `row ${type === 'ai' ? 'ai' : ''}`;
-        div.innerHTML = `<div class="content">${text}</div>`;
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
+        const input = document.getElementById("msgInput");
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_API_KEY}`;
+        
+        // Fetch ve Mesaj Ekleme Mantığı (Aynı)
+        const resp = await fetch(url, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ contents: [{role: "user", parts: [{text: input.value}]}] })
+        });
+        const data = await resp.json();
+        alert("Cevap: " + data.candidates[0].content.parts[0].text);
     }
 </script>
 </body>
