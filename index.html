@@ -3,70 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mirkay-AI | Pro</title>
+    <title>Mirkay-AI | Pro v3.0</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <style>
-        :root { --bg: #000; --accent: #fff; --card: #111; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        
-        .auth-card { background: var(--card); padding: 40px; border-radius: 20px; border: 1px solid #222; width: 340px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; outline: none; }
-        button.primary { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        :root { --bg: #050505; --sidebar: #0d0d0d; --accent: #fff; --text: #ececec; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        #chat-app { display: none; width: 100%; height: 100vh; flex-direction: column; }
-        .header { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        /* Sol Panel - Sohbet Geçmişi */
+        #sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; border-right: 1px solid #222; }
+        .new-chat { margin: 15px; padding: 12px; border: 1px solid #333; border-radius: 8px; text-align: center; cursor: pointer; font-size: 14px; transition: 0.2s; font-weight: bold; }
+        .new-chat:hover { background: #1a1a1a; }
+        .chat-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .chat-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid transparent; }
+        .chat-item:hover { background: #161616; border-color: #333; }
+
+        /* Ana Alan */
+        #main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .header { height: 60px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: #050505; }
         
         /* Profil Menüsü */
-        .profile-container { position: relative; }
-        .p-btn { width: 35px; height: 35px; border-radius: 50%; background: #fff; color: #000; border: none; font-weight: bold; cursor: pointer; }
-        .dropdown { position: absolute; top: 45px; right: 0; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; width: 160px; display: none; flex-direction: column; z-index: 100; }
+        .profile-btn { width: 38px; height: 38px; border-radius: 50%; background: #fff; color: #000; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .dropdown { position: absolute; top: 55px; right: 20px; background: #151515; border: 1px solid #333; border-radius: 12px; width: 200px; display: none; flex-direction: column; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .dropdown.active { display: flex; }
-        .drop-item { padding: 10px; font-size: 13px; cursor: pointer; background: none; color: #fff; border: none; text-align: left; }
+        .drop-item { padding: 14px; font-size: 13px; text-align: left; background: none; color: #fff; border: none; border-bottom: 1px solid #222; cursor: pointer; }
         .drop-item:hover { background: #222; }
 
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 15px; }
-        .msg { padding: 15px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
-        .user { background: #222; align-self: flex-end; }
-        .ai { background: #fff; color: #000; align-self: flex-start; }
+        /* Sağ Panel (E-posta Ekleme) */
+        #email-panel { position: fixed; right: -320px; top: 0; width: 320px; height: 100%; background: #0a0a0a; border-left: 1px solid #333; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px; z-index: 1000; box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
+        #email-panel.active { right: 0; }
+        .panel-close { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 24px; color: #666; }
 
-        .input-area { padding: 20px 15%; background: #000; border-top: 1px solid #222; }
-        .input-box { background: #111; display: flex; padding: 5px 15px; border-radius: 30px; border: 1px solid #333; }
+        /* Sohbet Alanı */
+        #chat-box { flex: 1; overflow-y: auto; padding: 40px 15%; display: flex; flex-direction: column; gap: 25px; }
+        .msg { padding: 16px 20px; border-radius: 18px; max-width: 85%; line-height: 1.6; font-size: 15px; }
+        .user { background: #1a1a1a; align-self: flex-end; border: 1px solid #333; color: #fff; }
+        .ai { background: #fff; color: #000; align-self: flex-start; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
+
+        /* Giriş */
+        .input-area { padding: 20px 15% 40px 15%; background: linear-gradient(transparent, #050505); }
+        .input-box { background: #111; display: flex; padding: 12px 25px; border-radius: 35px; border: 1px solid #333; align-items: center; }
+        input#uInp { flex: 1; background: none; border: none; color: #fff; outline: none; font-size: 15px; }
+
+        /* Login Ekranı */
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #0a0a0a; padding: 45px; border-radius: 25px; width: 360px; text-align: center; border: 1px solid #222; }
+        .auth-card input { width: 100%; padding: 14px; margin: 12px 0; border-radius: 10px; background: #000; border: 1px solid #333; color: #fff; outline: none; }
     </style>
 </head>
 <body>
 
-<div id="auth-screen" class="auth-card">
-    <div style="font-size: 22px; font-weight: 900; letter-spacing: 2px;">MIRKAY-AI</div>
-    <p style="color: #666; font-size: 11px; margin-bottom: 10px;">HIZLI PRO ERİŞİMİ</p>
-    <input type="email" id="email" placeholder="E-posta veya Kullanıcı Adı">
-    <input type="password" id="password" placeholder="Şifre">
-    <button class="primary" onclick="handleAuth(false)">Kayıt Ol</button>
-    <button style="background:none; color:#fff; border:1px solid #333; margin-top:8px; width:100%; padding:10px; border-radius:10px; cursor:pointer;" onclick="handleAuth(true)">Giriş Yap</button>
+<div id="auth-screen">
+    <div class="auth-card">
+        <h2 style="letter-spacing: 4px; margin-bottom: 25px; font-weight: 900;">MIRKAY-AI</h2>
+        <input type="text" id="authEmail" placeholder="İsim (örn: ali@mirkay.com)">
+        <input type="password" id="authPass" placeholder="Şifre">
+        <button onclick="handleAuth(false)" style="width:100%; padding:14px; background:#fff; border-radius:10px; font-weight:bold; cursor:pointer; border:none; margin-top:10px;">Kayıt Ol / Giriş Yap</button>
+        <p style="font-size: 11px; color: #555; margin-top: 15px;">İlk kez giriyorsanız bir isim ve şifre uydurup kayıt olun.</p>
+    </div>
 </div>
 
-<div id="chat-app">
+<div id="sidebar">
+    <div class="new-chat" onclick="startNewChat()">+ Yeni Sohbet</div>
+    <div class="chat-list" id="chatList"></div>
+</div>
+
+<div id="main">
     <div class="header">
-        <div style="font-weight: 900;">MIRKAY-AI</div>
+        <div style="font-weight: 900; letter-spacing: 2px;">MIRKAY-AI</div>
         <div class="profile-container">
-            <button class="p-btn" id="p-icon" onclick="toggleMenu()">M</button>
+            <button class="profile-btn" id="p-icon" onclick="toggleMenu()">M</button>
             <div class="dropdown" id="dropMenu">
-                <button class="drop-item" onclick="resendMail()">📧 Onay Kodu Gönder</button>
-                <button class="drop-item" style="color:#ff4d4d;" onclick="logout()">🚪 Çıkış Yap</button>
+                <button class="drop-item" id="mailLinkBtn" onclick="openEmailPanel()">📧 E-posta Ekle</button>
+                <button class="drop-item" style="color:#ff4d4d; border:none;" onclick="logout()">🚪 Çıkış Yap</button>
             </div>
         </div>
     </div>
+
     <div id="chat-box"></div>
+
     <div class="input-area">
         <div class="input-box">
-            <input type="text" id="uInp" placeholder="Bir şeyler yaz..." style="flex:1; background:none; border:none; color:#fff; padding:10px; outline:none;" onkeypress="if(event.key==='Enter') send()">
-            <button onclick="send()" style="background:#fff; border:none; border-radius:50%; width:30px; height:30px; margin:5px; cursor:pointer;">↑</button>
+            <input type="text" id="uInp" placeholder="Mirkay'a bir şeyler sor..." onkeypress="if(event.key==='Enter') send()">
+            <button onclick="send()" style="background:#fff; border:none; border-radius:50%; width:35px; height:35px; cursor:pointer; font-weight:bold;">↑</button>
         </div>
+    </div>
+</div>
+
+<div id="email-panel">
+    <span class="panel-close" onclick="openEmailPanel()">×</span>
+    <h3 style="margin-top: 40px; font-weight: 900;">Hesap Ayarları</h3>
+    <hr style="border: 0; border-top: 1px solid #222; margin: 20px 0;">
+    <p style="font-size: 13px; color: #888; margin-bottom: 20px;" id="panelDesc">Gerçek bir e-posta ekleyerek şifreni sıfırlayabilirsin.</p>
+    <div id="emailActionArea">
+        <input type="email" id="newEmail" placeholder="Gmail adresini yaz" style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:10px; outline:none;">
+        <button onclick="linkEmail()" style="width:100%; padding:14px; margin-top:15px; background:#fff; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">E-postayı Bağla</button>
     </div>
 </div>
 
 <script>
-    // FİREBASE BİLGİLERİN
+    // --- SİZİN ÖZEL BİLGİLERİNİZ ---
     const firebaseConfig = {
         apiKey: "AIzaSyABxjad9QLLdNFUd6LNTSAQQq7ImycGG1M",
         authDomain: "mirac-ai-auth.firebaseapp.com",
@@ -76,40 +113,78 @@
         appId: "1:531892620198:web:dc2f8b1296115182f39d67"
     };
     firebase.initializeApp(firebaseConfig);
+    const M_KEY = "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"; // Groq Key'iniz eklendi
 
-    // GROQ KEYİN
-    const M_KEY = "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";
+    let currentChat = [];
+    let allChats = JSON.parse(localStorage.getItem('mirkay_chats') || "[]");
 
     function toggleMenu() { document.getElementById("dropMenu").classList.toggle("active"); }
+    function openEmailPanel() { document.getElementById("email-panel").classList.toggle("active"); if(document.getElementById("dropMenu").classList.contains("active")) toggleMenu(); }
 
     async function handleAuth(isLogin) {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+        const email = document.getElementById("authEmail").value;
+        const pass = document.getElementById("authPass").value;
+        if(!email || !pass) return alert("Bilgileri doldur!");
         try {
-            if(isLogin) await firebase.auth().signInWithEmailAndPassword(email, password);
-            else {
-                const res = await firebase.auth().createUserWithEmailAndPassword(email, password);
-                await res.user.sendEmailVerification();
-                alert("Kayıt başarılı! Doğrulama maili Spam klasörüne düşmüş olabilir.");
-            }
-        } catch(e) { alert("Hata: " + e.message); }
+            // Basitlik için kayıt hatası alırsa giriş yapmayı dener
+            await firebase.auth().createUserWithEmailAndPassword(email, pass)
+                .catch(() => firebase.auth().signInWithEmailAndPassword(email, pass));
+        } catch(e) { alert(e.message); }
     }
 
     firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
+        if(user) {
             document.getElementById("auth-screen").style.display = "none";
-            document.getElementById("chat-app").style.display = "flex";
             document.getElementById("p-icon").innerText = user.email[0].toUpperCase();
+            
+            // Panel durumunu güncelle
+            if(user.email.includes("@mirkay.com") || user.email.includes("test.com")) {
+                document.getElementById("mailLinkBtn").innerText = "📧 E-posta Ekle";
+            } else {
+                document.getElementById("mailLinkBtn").innerText = "❌ E-postadan Çık";
+                document.getElementById("panelDesc").innerText = "Bağlı Hesap: " + user.email;
+                document.getElementById("emailActionArea").innerHTML = `<button onclick="logout()" style="width:100%; padding:14px; background:#ff4d4d; color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Hesaptan Çıkış Yap</button>`;
+            }
+            renderChatList();
         } else {
-            document.getElementById("auth-screen").style.display = "block";
-            document.getElementById("chat-app").style.display = "none";
+            document.getElementById("auth-screen").style.display = "flex";
         }
     });
 
-    function logout() { firebase.auth().signOut(); }
-    function resendMail() { 
-        firebase.auth().currentUser.sendEmailVerification()
-            .then(() => alert("Kod tekrar gönderildi. Spam kutusuna bakmayı unutma!")); 
+    function logout() { firebase.auth().signOut(); location.reload(); }
+
+    async function linkEmail() {
+        const mail = document.getElementById("newEmail").value;
+        if(!mail) return;
+        try {
+            await firebase.auth().currentUser.updateEmail(mail);
+            alert("Harika! Gerçek e-postan bağlandı.");
+            location.reload();
+        } catch(e) { alert("Hata: " + e.message); }
+    }
+
+    // Sohbet Yönetimi
+    function startNewChat() {
+        if(currentChat.length > 0) {
+            const title = currentChat[0].text.substring(0, 25);
+            allChats.push({ id: Date.now(), title: title, data: [...currentChat] });
+            localStorage.setItem('mirkay_chats', JSON.stringify(allChats));
+        }
+        currentChat = [];
+        document.getElementById("chat-box").innerHTML = "";
+        renderChatList();
+    }
+
+    function renderChatList() {
+        const list = document.getElementById("chatList");
+        list.innerHTML = allChats.map(c => `<div class="chat-item" onclick="loadChat(${c.id})">💬 ${c.title}...</div>`).reverse().join("");
+    }
+
+    function loadChat(id) {
+        const chat = allChats.find(c => c.id === id);
+        currentChat = [...chat.data];
+        document.getElementById("chat-box").innerHTML = "";
+        currentChat.forEach(m => addMsg(m.role, m.text));
     }
 
     async function send() {
@@ -118,6 +193,7 @@
         if(!txt) return;
 
         addMsg("user", txt);
+        currentChat.push({role: "user", text: txt});
         inp.value = "";
 
         try {
@@ -126,12 +202,14 @@
                 headers: { "Authorization": `Bearer ${M_KEY}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
                     model: "llama-3.1-8b-instant",
-                    messages: [{role: "system", content: "Sen Mirkay-AI'sın."}, {role: "user", content: txt}]
+                    messages: [{role: "system", content: "Sen Mirkay-AI'sın. Zeki ve yardımsever bir asistansın."}, ...currentChat]
                 })
             });
             const d = await r.json();
-            addMsg("ai", d.choices[0].message.content);
-        } catch(e) { addMsg("ai", "Bağlantı hatası!"); }
+            const reply = d.choices[0].message.content;
+            addMsg("ai", reply);
+            currentChat.push({role: "ai", text: reply});
+        } catch(e) { addMsg("ai", "Üzgünüm, bir hata oluştu. Lütfen tekrar dene."); }
     }
 
     function addMsg(role, text) {
