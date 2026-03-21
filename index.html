@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mirkay-AI | Premium v3.9</title>
+    <title>Mirkay-AI | Premium v3.9.1</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -11,26 +11,21 @@
         :root { --bg: #050505; --sidebar: #0d0d0d; --text: #ececec; --gold: #ffd700; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-
         #sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid #222; display: flex; flex-direction: column; }
         .premium-btn { margin: 15px; padding: 12px; background: linear-gradient(45deg, var(--gold), #ff8c00); color: #000; border-radius: 8px; text-align: center; font-weight: 900; cursor: pointer; font-size: 13px; animation: glow 2s infinite; }
         @keyframes glow { 0% { box-shadow: 0 0 5px var(--gold); } 50% { box-shadow: 0 0 15px #ff8c00; } 100% { box-shadow: 0 0 5px var(--gold); } }
-        
         #main { flex: 1; display: flex; flex-direction: column; }
         .header { height: 60px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
         .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; background: #222; font-weight: bold; }
         .pro-badge { background: var(--gold) !important; color: #000 !important; }
-        
         #chat-box { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 15px; }
         .msg { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.5; font-size: 14px; }
         .user { background: #1a1a1a; align-self: flex-end; border: 1px solid #333; }
         .ai { background: #fff; color: #000; align-self: flex-start; }
         .premium-text { color: var(--gold) !important; text-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
-
         .input-area { padding: 20px 15% 40px 15%; }
         .input-box { background: #111; display: flex; padding: 10px 20px; border-radius: 35px; border: 1px solid #333; }
         input#uInp { flex: 1; background: none; border: none; color: #fff; outline: none; }
-
         #auth-screen { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: #0a0a0a; padding: 30px; border-radius: 20px; border: 1px solid #222; width: 320px; text-align: center; }
         .auth-card input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; background: #000; border: 1px solid #333; color: #fff; }
@@ -68,7 +63,6 @@
 </div>
 
 <script>
-    // Yeni Config Bilgilerin Yerleştirildi!
     const firebaseConfig = {
       apiKey: "AIzaSyC_dfVhnWnRBPiLC4YiMqWkjCoIL18b04U",
       authDomain: "mirkay-ai-7b690.firebaseapp.com",
@@ -88,30 +82,30 @@
     async function handleAuth() {
         const e = document.getElementById("authEmail").value;
         const p = document.getElementById("authPass").value;
-        if(!e || !p) return alert("Lütfen alanları doldurun.");
+        if(!e || !p) return alert("Alanları doldurun.");
         try {
             await firebase.auth().createUserWithEmailAndPassword(e, p)
                 .catch(() => firebase.auth().signInWithEmailAndPassword(e, p));
-        } catch(err) { alert("Hata: " + err.message); }
+        } catch(err) { alert(err.message); }
     }
 
     firebase.auth().onAuthStateChanged(async (user) => {
         if(user) {
             document.getElementById("auth-screen").style.display = "none";
-            
             const userRef = db.collection("users").doc(user.uid);
-            const doc = await userRef.get();
-
-            if (!doc.exists()) {
-                await userRef.set({ email: user.email, isPremium: false });
-            } else {
-                isPremium = doc.data().isPremium;
-                if(isPremium) {
-                    const badge = document.getElementById("userStatus");
-                    badge.innerText = "PRO";
-                    badge.classList.add("pro-badge");
+            
+            userRef.get().then(async (doc) => {
+                if (!doc.exists) {
+                    await userRef.set({ email: user.email, isPremium: false });
+                } else {
+                    isPremium = doc.data().isPremium;
+                    if(isPremium) {
+                        const badge = document.getElementById("userStatus");
+                        badge.innerText = "PRO";
+                        badge.classList.add("pro-badge");
+                    }
                 }
-            }
+            }).catch(e => console.error("Firestore Hatası:", e));
         } else {
             document.getElementById("auth-screen").style.display = "flex";
         }
@@ -136,11 +130,13 @@
                 })
             });
             const d = await res.json();
-            const reply = d.choices[0].message.content;
-            addMsg("assistant", reply);
-            currentChat.push({ role: "assistant", content: reply });
+            if(d.choices) {
+                const reply = d.choices[0].message.content;
+                addMsg("assistant", reply);
+                currentChat.push({ role: "assistant", content: reply });
+            } else { throw new Error(); }
         } catch(e) { 
-            addMsg("assistant", "Bağlantı hatası! Lütfen API anahtarını kontrol edin."); 
+            addMsg("assistant", "Bağlantı hatası! Lütfen API anahtarınızı veya internetinizi kontrol edin."); 
         }
     }
 
@@ -148,11 +144,7 @@
         const box = document.getElementById("chat-box");
         const d = document.createElement("div");
         d.className = `msg ${r === 'user' ? 'user' : 'ai'}`;
-        
-        const label = (r === 'user') ? 
-            (isPremium ? "<b class='premium-text'>✨ Sen (PRO)</b>" : "<b>Sen</b>") : 
-            "<b>Mirkay-AI</b>";
-
+        const label = (r === 'user') ? (isPremium ? "<b class='premium-text'>✨ Sen (PRO)</b>" : "<b>Sen</b>") : "<b>Mirkay-AI</b>";
         d.innerHTML = `${label}:<br>${t}`;
         box.appendChild(d);
         box.scrollTop = box.scrollHeight;
