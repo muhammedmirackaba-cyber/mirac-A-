@@ -6,27 +6,20 @@
     <title>mirac-AI | Dashboard</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #343541; color: white; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Kurulum Ekranı */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #343541; color: white; display: flex; height: 100vh; overflow: hidden; }
         #setup-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #202123; display: flex; justify-content: center; align-items: center; z-index: 100; }
         .setup-box { background: #2b2c2f; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         input[type="password"] { width: 100%; padding: 12px; margin: 15px 0; border-radius: 5px; border: 1px solid #4d4d4f; background: #40414f; color: white; outline: none; }
-        .btn-start { background: #10a37f; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s; }
-        .btn-start:hover { background: #1a7f64; }
-
-        /* Ana Sohbet Arayüzü */
+        .btn-start { background: #10a37f; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
         #chat-ui { display: none; flex: 1; flex-direction: column; width: 100%; }
         #messages { flex: 1; overflow-y: auto; padding: 40px 15%; display: flex; flex-direction: column; gap: 20px; }
-        .row { padding: 20px; border-radius: 10px; max-width: 85%; line-height: 1.6; position: relative; }
-        .user { background: #444654; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .ai { background: #2b2c2f; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #4d4d4f; }
-        
-        /* Mesaj Giriş Alanı */
-        .input-area { padding: 20px 15%; background: linear-gradient(transparent, #343541 40%); border-top: 1px solid rgba(255,255,255,0.1); }
-        .input-box { background: #40414f; display: flex; padding: 10px 15px; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.3); }
-        #userInput { flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; font-size: 16px; }
-        .send-btn { background: none; border: none; color: #10a37f; cursor: pointer; font-size: 24px; display: flex; align-items: center; }
+        .row { padding: 20px; border-radius: 10px; max-width: 85%; line-height: 1.6; }
+        .user { background: #444654; align-self: flex-end; }
+        .ai { background: #2b2c2f; align-self: flex-start; border: 1px solid #4d4d4f; }
+        .input-area { padding: 20px 15%; background: #343541; }
+        .input-box { background: #40414f; display: flex; padding: 10px; border-radius: 12px; }
+        #userInput { flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; }
+        .send-btn { background: none; border: none; color: #10a37f; cursor: pointer; font-size: 24px; padding: 0 10px; }
     </style>
 </head>
 <body>
@@ -34,41 +27,39 @@
 <div id="setup-screen">
     <div class="setup-box">
         <h2>mirac-AI Kurulum</h2>
-        <p style="font-size: 13px; color: #acacbe; margin-top: 8px;">API anahtarın sadece bu cihazda saklanır, GitHub'a gönderilmez.</p>
-        <input type="password" id="keyInput" placeholder="AIza... anahtarını buraya yapıştır">
-        <button class="btn-start" onclick="saveConfig()">Sistemi Başlat</button>
+        <p style="font-size: 13px; color: #acacbe; margin-top: 8px;">Yeni API Key'ini girerek sistemi aktifleştir.</p>
+        <input type="password" id="keyInput" placeholder="AIza... anahtarını yapıştır">
+        <button class="btn-start" onclick="saveKey()">Sistemi Başlat</button>
     </div>
 </div>
 
 <div id="chat-ui">
     <div id="messages">
-        <div class="row ai">Selam Mirac! Sistem hazır, bana her şeyi sorabilirsin.</div>
+        <div class="row ai">Selam Mirac! Sistem güncellendi ve hazır.</div>
     </div>
     <div class="input-area">
         <div class="input-box">
-            <input type="text" id="userInput" placeholder="Bir mesaj gönder..." onkeypress="if(event.key==='Enter') send()">
+            <input type="text" id="userInput" placeholder="Mesajını yaz..." onkeypress="if(event.key==='Enter') send()">
             <button class="send-btn" onclick="send()">➤</button>
         </div>
-        <p style="font-size: 11px; color: #8e8ea0; text-align: center; margin-top: 10px;">mirac-AI bazen hata yapabilir. Bilgileri kontrol etmeyi unutma.</p>
     </div>
 </div>
 
 <script>
-    let ACTIVE_KEY = localStorage.getItem("mirac_api_v1");
+    let API_KEY = localStorage.getItem("mirac_key_final");
 
-    // Eğer anahtar varsa direkt sohbeti aç
-    if (ACTIVE_KEY) {
+    if (API_KEY) {
         document.getElementById("setup-screen").style.display = "none";
         document.getElementById("chat-ui").style.display = "flex";
     }
 
-    function saveConfig() {
+    function saveKey() {
         const val = document.getElementById("keyInput").value.trim();
         if (val.startsWith("AIza")) {
-            localStorage.setItem("mirac_api_v1", val);
-            location.reload(); // Sayfayı yenileyerek anahtarı aktifleştir
+            localStorage.setItem("mirac_key_final", val);
+            location.reload();
         } else {
-            alert("Hata: Lütfen 'AIza' ile başlayan geçerli bir Google API anahtarı gir!");
+            alert("Geçersiz anahtar!");
         }
     }
 
@@ -76,40 +67,33 @@
         const input = document.getElementById("userInput");
         const box = document.getElementById("messages");
         const text = input.value.trim();
-        
         if (!text) return;
 
-        // Kullanıcı mesajını ekrana ekle
         box.innerHTML += `<div class="row user"><b>Sen:</b><br>${text}</div>`;
         input.value = "";
         box.scrollTop = box.scrollHeight;
 
         try {
-            // EN GÜNCEL GOOGLE API ADRESİ
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${ACTIVE_KEY}`, {
+            // URL ve Model İsmi En Kararlı Hale Getirildi
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: text }]
-                    }]
+                    contents: [{ parts: [{ text: text }] }]
                 })
             });
 
             const data = await response.json();
 
             if (data.error) {
-                let errorMsg = data.error.message;
-                if (data.error.code === 400) errorMsg = "Anahtar geçersiz veya banlanmış. Lütfen yeni bir key al.";
-                box.innerHTML += `<div class="row ai" style="color:#ff6b6b;"><b>Sistem Hatası:</b><br>${errorMsg}</div>`;
+                box.innerHTML += `<div class="row ai" style="color:#ff6b6b;"><b>Hata:</b> ${data.error.message}</div>`;
             } else {
                 const aiText = data.candidates[0].content.parts[0].text;
                 box.innerHTML += `<div class="row ai"><b>mirac-AI:</b><br>${aiText}</div>`;
             }
         } catch (err) {
-            box.innerHTML += `<div class="row ai" style="color:#ff6b6b;"><b>Bağlantı Sorunu:</b> İnternetini veya API anahtarını kontrol et.</div>`;
+            box.innerHTML += `<div class="row ai" style="color:#ff6b6b;">Bağlantı sorunu!</div>`;
         }
-        
         box.scrollTop = box.scrollHeight;
     }
 </script>
