@@ -3,63 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mirac-AI | Pro Dashboard</title>
+    <title>Mirkay-AI | Global</title>
     <style>
         :root { --bg: #1a1a1b; --sidebar: #121212; --accent: #10a37f; --text: #ececec; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Giriş Ekranı */
-        #login-screen { position: fixed; inset: 0; background: #000; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .login-box { background: #262729; padding: 40px; border-radius: 15px; text-align: center; width: 90%; max-width: 400px; border: 1px solid #3e3f41; }
-        
+        /* Logo Alanı */
+        #logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #333; }
+        .logo-text { font-size: 24px; font-weight: bold; color: var(--accent); letter-spacing: 2px; }
+
         /* Yan Panel */
         #sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; transition: 0.3s; position: relative; border-right: 1px solid #333; }
         #sidebar.closed { width: 0; overflow: hidden; border: none; }
-        .sidebar-content { padding: 15px; flex: 1; overflow-y: auto; margin-top: 50px; }
-        .history-item { padding: 10px; margin-bottom: 5px; background: #222; border-radius: 5px; cursor: pointer; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .history-item:hover { background: #333; }
+        .sidebar-content { padding: 15px; flex: 1; overflow-y: auto; }
+        .history-item { padding: 10px; margin-bottom: 5px; background: #222; border-radius: 5px; cursor: pointer; font-size: 12px; }
 
-        /* Menü Çizgisi */
-        .toggle-btn { position: absolute; left: 15px; top: 15px; cursor: pointer; z-index: 100; font-size: 20px; background: none; border: none; color: white; display: flex; flex-direction: column; gap: 4px; }
-        .toggle-btn span { width: 20px; height: 2px; background: white; display: block; }
+        /* Menü Butonu */
+        .toggle-btn { position: absolute; left: 15px; top: 22px; cursor: pointer; z-index: 100; background: none; border: none; }
+        .toggle-btn span { width: 20px; height: 2px; background: white; display: block; margin: 4px; }
 
         /* Ana Chat */
         #main { flex: 1; display: flex; flex-direction: column; position: relative; }
         #chat-container { flex: 1; overflow-y: auto; padding: 60px 15% 120px 15%; display: flex; flex-direction: column; gap: 20px; }
-        .row { padding: 20px; border-radius: 10px; line-height: 1.6; max-width: 90%; position: relative; }
-        .user { background: #2f3032; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .ai { background: #212121; align-self: flex-start; border: 1px solid #333; border-bottom-left-radius: 2px; }
+        .row { padding: 20px; border-radius: 12px; line-height: 1.6; max-width: 90%; }
+        .user { background: #2f3032; align-self: flex-end; }
+        .ai { background: #212121; align-self: flex-start; border: 1px solid #333; }
 
         /* Giriş Alanı */
         .input-wrapper { position: absolute; bottom: 0; width: 100%; padding: 20px 15%; background: linear-gradient(transparent, var(--bg) 50%); }
         .input-box { background: #343541; display: flex; padding: 10px; border-radius: 10px; border: 1px solid #555; }
         input { flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; }
         button.send { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        
-        input.key-input { width: 100%; padding: 12px; margin: 20px 0; border-radius: 5px; border: 1px solid #444; background: #1a1a1b; color: white; outline: none; }
     </style>
 </head>
 <body>
-
-<div id="login-screen">
-    <div class="login-box">
-        <h2>mirac-AI Dashboard</h2>
-        <p style="color: #888; margin-top: 10px; font-size: 14px;">Groq API anahtarınızı girin.</p>
-        <input type="password" id="api-key" class="key-input" placeholder="gsk_... anahtarını yapıştır">
-        <button class="send" style="width:100%" onclick="login()">Sistemi Etkinleştir</button>
-    </div>
-</div>
 
 <button class="toggle-btn" onclick="toggleSidebar()">
     <span></span><span></span><span></span>
 </button>
 
 <div id="sidebar">
+    <div id="logo-area">
+        <div class="logo-text">MIRKAY-AI</div>
+    </div>
     <div class="sidebar-content">
-        <h3 style="margin-bottom: 20px; font-size: 14px; color: #888;">SON SOHBETLER</h3>
+        <h3 style="margin-bottom: 20px; font-size: 13px; color: #888;">GEÇMİŞ SOHBETLER</h3>
         <div id="history-list"></div>
-        <button onclick="clearHistory()" style="margin-top:20px; background:none; color:#555; border:none; cursor:pointer; font-size:11px; width:100%">Geçmişi Temizle</button>
     </div>
 </div>
 
@@ -67,31 +57,24 @@
     <div id="chat-container"></div>
     <div class="input-wrapper">
         <div class="input-box">
-            <input type="text" id="userInput" placeholder="Bir mesaj gönder..." onkeypress="if(event.key==='Enter') send()">
+            <input type="text" id="userInput" placeholder="Mirkay-AI'ye bir şeyler sor..." onkeypress="if(event.key==='Enter') send()">
             <button class="send" onclick="send()">Gönder</button>
         </div>
-        <p style="font-size: 11px; color: #555; text-align: center; margin-top: 10px;">mirac-AI | Llama 3.1 Gelişmiş Modül</p>
+        <p style="font-size: 11px; color: #555; text-align: center; margin-top: 10px;">Powered by Mirkay Systems</p>
     </div>
 </div>
 
 <script>
-    // LocalStorage isimlerini hata almamak için güncelledim
-    let API_KEY = localStorage.getItem("mirac_final_v3");
-    let chatHistory = JSON.parse(localStorage.getItem("chat_data_v3") || "[]");
+    // --- ANAHTAR BURAYA ---
+    const M_KEY = "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"; 
+    // -----------------------
 
-    if (API_KEY) {
-        document.getElementById("login-screen").style.display = "none";
-        renderHistory();
+    let chatHistory = JSON.parse(localStorage.getItem("mirkay_history") || "[]");
+
+    window.onload = () => {
         renderChatFromHistory();
-    }
-
-    function login() {
-        const key = document.getElementById("api-key").value.trim();
-        if (key.startsWith("gsk_")) {
-            localStorage.setItem("mirac_final_v3", key);
-            location.reload();
-        } else { alert("Hata: Geçersiz Groq anahtarı!"); }
-    }
+        renderHistoryList();
+    };
 
     function toggleSidebar() {
         document.getElementById("sidebar").classList.toggle("closed");
@@ -101,7 +84,7 @@
         const container = document.getElementById("chat-container");
         const div = document.createElement("div");
         div.className = `row ${role}`;
-        div.innerHTML = `<b>${role === 'user' ? 'Sen' : 'mirac-AI'}:</b><br>${text}`;
+        div.innerHTML = `<b>${role === 'user' ? 'Sen' : 'Mirkay-AI'}:</b><br>${text}`;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
     }
@@ -118,56 +101,45 @@
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${API_KEY}`,
+                    "Authorization": `Bearer ${M_KEY}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    // KRİTİK GÜNCELLEME: Artık llama-3.1 kullanıyoruz
-                    model: "llama-3.1-8b-instant", 
+                    model: "llama-3.1-8b-instant",
                     messages: [{ role: "user", content: text }],
                     temperature: 0.7
                 })
             });
 
             const data = await response.json();
+            const reply = data.choices[0].message.content;
+            addMsgToScreen("ai", reply);
 
-            if (data.error) {
-                addMsgToScreen("ai", `<span style="color:#ff6b6b;">Hata:</span> ${data.error.message}`);
-            } else {
-                const reply = data.choices[0].message.content;
-                addMsgToScreen("ai", reply);
+            chatHistory.push({ type: "user", text: text });
+            chatHistory.push({ type: "ai", text: reply });
+            localStorage.setItem("mirkay_history", JSON.stringify(chatHistory));
+            renderHistoryList();
 
-                chatHistory.push({ type: "user", text: text });
-                chatHistory.push({ type: "ai", text: reply });
-                if (chatHistory.length > 40) chatHistory.shift(); 
-                localStorage.setItem("chat_data_v3", JSON.stringify(chatHistory));
-                renderHistory();
-            }
         } catch (e) {
-            addMsgToScreen("ai", "Sistem hatası! Lütfen internetinizi kontrol edin.");
+            addMsgToScreen("ai", "Sistem hatası: Mirkay sunucularına ulaşılamadı.");
         }
     }
 
-    function renderHistory() {
+    function renderHistoryList() {
         const list = document.getElementById("history-list");
         list.innerHTML = "";
         const userMsgs = chatHistory.filter(item => item.type === "user");
-        userMsgs.reverse().slice(0, 10).forEach(item => {
-            list.innerHTML += `<div class="history-item" onclick="alert('Sohbet seçildi: ' + this.innerText)">${item.text}</div>`;
+        userMsgs.reverse().slice(0, 8).forEach(item => {
+            list.innerHTML += `<div class="history-item">${item.text}</div>`;
         });
     }
 
     function renderChatFromHistory() {
         if(chatHistory.length === 0) {
-            addMsgToScreen("ai", "Selam Mirac! Sistem hazır, ne sormak istersin?");
+            addMsgToScreen("ai", "Selam! Ben Mirkay-AI. Dünyanın öbür ucunda bile olsan seninle konuşmaya hazırım.");
         } else {
             chatHistory.forEach(item => addMsgToScreen(item.type, item.text));
         }
-    }
-
-    function clearHistory() {
-        localStorage.removeItem("chat_data_v3");
-        location.reload();
     }
 </script>
 </body>
