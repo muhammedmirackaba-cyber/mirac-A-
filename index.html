@@ -2,59 +2,113 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>mirac-AI | Güvenli Erişim</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mirac-AI Dashboard</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #343541; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .setup-container { background: #202123; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 5px; border: 1px solid #4d4d4f; background: #40414f; color: white; }
-        button { background: #10a37f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-        #chat-ui { display: none; width: 100%; height: 100vh; flex-direction: column; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #343541; color: white; display: flex; height: 100vh; }
+        
+        /* Kurulum Ekranı */
+        #setup-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #202123; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .setup-box { background: #2b2c2f; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 5px; border: 1px solid #4d4d4f; background: #40414f; color: white; outline: none; }
+        .btn-primary { background: #10a37f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+
+        /* Ana Chat Ekranı */
+        #main-ui { display: none; flex: 1; flex-direction: column; position: relative; }
+        #chat-container { flex: 1; overflow-y: auto; padding-bottom: 150px; }
+        .row { padding: 25px 15%; border-bottom: 1px solid rgba(0,0,0,0.1); width: 100%; }
+        .row.ai { background-color: #444654; }
+        #input-wrapper { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 15%; background: linear-gradient(transparent, #343541 50%); }
+        .input-box { background-color: #40414f; border-radius: 10px; padding: 15px; display: flex; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        #userInput { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
     </style>
 </head>
 <body>
 
-<div id="setup" class="setup-container">
-    <h2>mirac-AI Kurulum</h2>
-    <p>Google anahtarın GitHub'da görünmemeli.</p>
-    <input type="text" id="keyInput" placeholder="Yeni API Key'ini buraya yapıştır...">
-    <button onclick="saveKey()">Sistemi Başlat</button>
+<div id="setup-screen">
+    <div class="setup-box">
+        <h3>mirac-AI Kurulum</h3>
+        <p style="font-size: 12px; color: #acacbe; margin-top: 10px;">Google API Key'ini bir kez gir, sistem hatırlasın.</p>
+        <input type="password" id="keyInput" placeholder="AIzaSy... anahtarını buraya yapıştır">
+        <button class="btn-primary" onclick="initSystem()">Sistemi Etkinleştir</button>
+    </div>
 </div>
 
-<div id="chat-ui">
-    <div style="flex:1; overflow-y:auto; padding: 20px;" id="chat-box"></div>
-    <div style="padding: 20px;"><input type="text" id="msgInput" onkeypress="if(event.key==='Enter') send()"></div>
+<div id="main-ui">
+    <div id="chat-container">
+        <div class="row ai">Sistem Aktif. Selam Mirac, her şey hazır!</div>
+    </div>
+    <div id="input-wrapper">
+        <div class="input-box">
+            <input type="text" id="userInput" placeholder="Mesaj gönder..." onkeypress="if(event.key === 'Enter') send()">
+            <button onclick="send()" style="background:none; border:none; color:#10a37f; cursor:pointer; font-size:20px;">➤</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    let MY_API_KEY = localStorage.getItem("mirac_ai_key");
+    let currentKey = localStorage.getItem("mirac_key");
 
-    if(MY_API_KEY) {
-        document.getElementById("setup").style.display = "none";
-        document.getElementById("chat-ui").style.display = "flex";
+    // Sayfa açıldığında anahtar varsa direkt chat'e geç
+    if (currentKey) {
+        showChat();
     }
 
-    function saveKey() {
-        const val = document.getElementById("keyInput").value;
-        if(val.startsWith("AIza")) {
-            localStorage.setItem("mirac_ai_key", val);
-            location.reload();
+    function initSystem() {
+        const input = document.getElementById("keyInput").value.trim();
+        if (input.startsWith("AIza")) {
+            localStorage.setItem("mirac_key", input);
+            currentKey = input;
+            showChat();
         } else {
-            alert("Geçersiz API anahtarı!");
+            alert("Lütfen geçerli bir Google API anahtarı gir!");
         }
     }
 
+    function showChat() {
+        document.getElementById("setup-screen").style.display = "none";
+        document.getElementById("main-ui").style.display = "flex";
+    }
+
     async function send() {
-        const input = document.getElementById("msgInput");
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_API_KEY}`;
-        
-        // Fetch ve Mesaj Ekleme Mantığı (Aynı)
-        const resp = await fetch(url, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ contents: [{role: "user", parts: [{text: input.value}]}] })
-        });
-        const data = await resp.json();
-        alert("Cevap: " + data.candidates[0].content.parts[0].text);
+        const input = document.getElementById("userInput");
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMsg(text, 'user');
+        input.value = "";
+
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${currentKey}`;
+            const resp = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: text }] }] })
+            });
+
+            const data = await resp.json();
+            if (data.error) {
+                addMsg("Hata: " + data.error.message, 'ai');
+            } else {
+                addMsg(data.candidates[0].content.parts[0].text, 'ai');
+            }
+        } catch (e) {
+            addMsg("Bağlantı sorunu oluştu.", 'ai');
+        }
+    }
+
+    function addMsg(text, type) {
+        const container = document.getElementById("chat-container");
+        const div = document.createElement("div");
+        div.className = `row ${type === 'ai' ? 'ai' : ''}`;
+        div.innerHTML = `<div class="content">${text}</div>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
     }
 </script>
 </body>
