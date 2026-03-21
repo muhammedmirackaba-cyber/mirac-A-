@@ -6,16 +6,14 @@
     <title>mirac-AI Dashboard</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background-color: #343541; color: white; display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 260px; background-color: #202123; padding: 10px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
-        .new-chat { border: 1px solid #4d4d4f; padding: 12px; border-radius: 5px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; font-size: 14px; }
-        .new-chat:hover { background-color: #2b2c2f; }
-        .history { flex: 1; overflow-y: auto; font-size: 14px; margin-top: 20px; color: #acacbe; }
+        body { font-family: 'Inter', sans-serif; background-color: #343541; color: white; display: flex; height: 100vh; overflow: hidden; }
+        #sidebar { width: 260px; background-color: #202123; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .new-chat { border: 1px solid #4d4d4f; padding: 12px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .history { flex: 1; overflow-y: auto; margin-top: 20px; color: #acacbe; font-size: 14px; }
         .user-menu { border-top: 1px solid #4d4d4f; padding-top: 10px; display: flex; flex-direction: column; gap: 5px; }
         .menu-item { padding: 12px; border-radius: 5px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; }
-        .menu-item:hover { background-color: #2b2c2f; }
-        #main { flex: 1; display: flex; flex-direction: column; position: relative; background-color: #343541; }
-        #chat-container { flex: 1; overflow-y: auto; padding-bottom: 150px; }
+        #main { flex: 1; display: flex; flex-direction: column; background-color: #343541; position: relative; }
+        #chat-container { flex: 1; overflow-y: auto; padding-bottom: 120px; }
         .row { padding: 25px 15%; display: flex; gap: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); width: 100%; }
         .row.ai { background-color: #444654; }
         .content { line-height: 1.6; font-size: 16px; white-space: pre-wrap; word-break: break-word; }
@@ -39,7 +37,7 @@
 
 <div id="main">
     <div id="chat-container">
-        <div class="row ai"><div class="content">Sistem Aktif! Selam Mirac, yeni API anahtarı tanımlandı. Denemek için bir mesaj yaz.</div></div>
+        <div class="row ai"><div class="content">Sistem Hazır. Mirac, bu yeni kod ve yeni anahtarla (Nvss) son testi yapıyoruz. Yaz bakalım!</div></div>
     </div>
     <div id="input-wrapper">
         <div class="input-box">
@@ -63,7 +61,7 @@
         input.value = "";
 
         try {
-            // En güncel model ismini kullanıyoruz
+            // URL formatı: En kararlı yapı
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_API_KEY}`;
             
             const resp = await fetch(url, {
@@ -75,7 +73,8 @@
             const data = await resp.json();
             
             if(data.error) {
-                addMsg("Hata: " + data.error.message, 'ai');
+                console.error("Detaylı Hata:", data.error);
+                addMsg("Google Hatası: " + data.error.message, 'ai');
                 return;
             }
 
@@ -83,7 +82,7 @@
             addMsg(aiText, 'ai');
             history.push({ role: "model", parts: [{ text: aiText }] });
         } catch (e) {
-            addMsg("Bağlantı hatası oluştu.", 'ai');
+            addMsg("Bağlantı hatası! İnterneti kontrol et.", 'ai');
         }
     }
 
