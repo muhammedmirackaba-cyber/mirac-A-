@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mirkay-AI | Pro v3.3</title>
+    <title>Mirkay-AI | Pro v3.4 Fix</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <style>
@@ -44,7 +44,7 @@
         .user { background: #1a1a1a; align-self: flex-end; border: 1px solid #333; }
         .ai { background: #fff; color: #000; align-self: flex-start; }
 
-        /* Giriş Bölümü */
+        /* Giriş */
         .input-area { padding: 20px 15% 40px 15%; }
         .input-box { background: #111; display: flex; padding: 10px 20px; border-radius: 35px; border: 1px solid #333; align-items: center; }
         input#uInp, #newEmail { flex: 1; background: none; border: none; color: #fff; outline: none; }
@@ -59,7 +59,7 @@
 
 <div id="auth-screen">
     <div class="auth-card">
-        <h2 style="margin-bottom: 20px; letter-spacing: 2px;">MIRKAY-AI</h2>
+        <h2 style="margin-bottom: 20px;">MIRKAY-AI</h2>
         <input type="text" id="authEmail" placeholder="İsim (örn: mirkay)">
         <input type="password" id="authPass" placeholder="Şifre">
         <button onclick="handleAuth()" style="width:100%; padding:12px; background:#fff; border-radius:8px; font-weight:bold; cursor:pointer; border:none;">Giriş Yap / Kayıt Ol</button>
@@ -73,7 +73,7 @@
 
 <div id="main">
     <div class="header">
-        <div style="font-weight: 900; letter-spacing: 1px;">MIRKAY-AI PRO</div>
+        <div style="font-weight: 900;">MIRKAY-AI PRO v3.4</div>
         <div class="profile-container">
             <button class="profile-btn" id="p-icon" onclick="toggleMenu()">M</button>
             <div class="dropdown" id="dropMenu">
@@ -85,7 +85,7 @@
     <div id="chat-box"></div>
     <div class="input-area">
         <div class="input-box">
-            <input type="text" id="uInp" placeholder="Bir şeyler yaz..." onkeypress="if(event.key==='Enter') send()">
+            <input type="text" id="uInp" placeholder="Groq ile bağlanıyor..." onkeypress="if(event.key==='Enter') send()">
             <button onclick="send()" style="background:#fff; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">↑</button>
         </div>
     </div>
@@ -95,14 +95,12 @@
     <span class="panel-close" onclick="openEmailPanel()">×</span>
     <h3 style="margin-top: 40px; margin-bottom: 20px;">E-posta Bağla</h3>
     <div id="emailActionArea">
-        <input type="email" id="newEmail" placeholder="Gerçek Gmail adresin" style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:10px; margin-bottom: 15px; outline:none;">
-        <button onclick="linkAndVerify()" style="width:100%; padding:12px; background:#fff; color:#000; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">Onay İste & Bağla</button>
-        <p style="font-size: 11px; color: #555; margin-top: 15px; text-align: center;">Kod gönderildikten sonra Spam kutunu kontrol et.</p>
+        <input type="email" id="newEmail" placeholder="Gerçek Gmail adresin" style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:10px; margin-bottom: 15px;">
+        <button onclick="linkAndVerify()" style="width:100%; padding:12px; background:#fff; color:#000; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">Kod Gönder & Bağla</button>
     </div>
 </div>
 
 <script>
-    // --- FIREBASE AYARLARI ---
     const firebaseConfig = {
         apiKey: "AIzaSyABxjad9QLLdNFUd6LNTSAQQq7ImycGG1M",
         authDomain: "mirac-ai-auth.firebaseapp.com",
@@ -114,65 +112,53 @@
     firebase.initializeApp(firebaseConfig);
     const M_KEY = "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";
 
-    // Panel & Menü Kontrolleri
     function toggleMenu() { document.getElementById("dropMenu").classList.toggle("active"); }
     function openEmailPanel() { 
         document.getElementById("email-panel").classList.toggle("active");
         document.getElementById("dropMenu").classList.remove("active");
     }
 
-    // Giriş & Kayıt
     async function handleAuth() {
         let email = document.getElementById("authEmail").value;
         const pass = document.getElementById("authPass").value;
         if(!email.includes("@")) email += "@mirkay.com";
-
         try {
             await firebase.auth().createUserWithEmailAndPassword(email, pass)
                 .catch(() => firebase.auth().signInWithEmailAndPassword(email, pass));
-        } catch(e) { alert("Giriş Hatası: " + e.message); }
+        } catch(e) { alert(e.message); }
     }
 
     firebase.auth().onAuthStateChanged((user) => {
         if(user) {
             document.getElementById("auth-screen").style.display = "none";
             document.getElementById("p-icon").innerText = user.email[0].toUpperCase();
-            
-            // Eğer gerçek mail bağlıysa paneli güncelle
             if(!user.email.includes("@mirkay.com")) {
                 document.getElementById("mailLinkBtn").innerText = "❌ E-postadan Çık";
-                document.getElementById("emailActionArea").innerHTML = `
-                    <p style="font-size:13px; color:#aaa; margin-bottom:15px;">Bağlı Hesap: ${user.email}</p>
-                    <button onclick="logout()" style="width:100%; padding:12px; background:#ff4d4d; color:#fff; border-radius:10px; border:none; cursor:pointer; font-weight:bold;">Çıkış Yap</button>
-                `;
+                document.getElementById("emailActionArea").innerHTML = `<button onclick="logout()" style="width:100%; padding:10px; background:#ff4d4d; color:#fff; border-radius:8px; border:none; cursor:pointer;">Çıkış Yap</button>`;
             }
             renderChatList();
         } else { document.getElementById("auth-screen").style.display = "flex"; }
     });
 
-    // E-posta Onay & Bağlama (HATA ÇÖZÜCÜ)
     async function linkAndVerify() {
         const mail = document.getElementById("newEmail").value;
-        if(!mail) return alert("Lütfen mailini yaz.");
+        if(!mail) return alert("Mail gir!");
         const user = firebase.auth().currentUser;
-
         try {
-            // Firebase'in yeni güvenli yöntemi (operation-not-allowed hatasını vermez)
             await user.verifyBeforeUpdateEmail(mail);
-            alert("Onay linki gönderildi! " + mail + " adresine bak. Linke tıkladığında hesabın güncellenecek.");
+            alert("Onay linki gönderildi! Mailini kontrol et.");
             openEmailPanel();
         } catch(e) { alert("Hata: " + e.message); }
     }
 
     function logout() { firebase.auth().signOut(); location.reload(); }
 
-    // Sohbet Mantığı
     let currentChat = [];
     let allChats = JSON.parse(localStorage.getItem('mirkay_chats') || "[]");
 
     function startNewChat() {
         if(currentChat.length > 0) {
-            allChats.push({ id: Date.now(), title: currentChat[0].text.slice(0,25), data: [...currentChat] });
+            allChats.push({ id: Date.now(), title: currentChat[0].content.slice(0,20), data: [...currentChat] });
             localStorage.setItem('mirkay_chats', JSON.stringify(allChats));
         }
         currentChat = [];
@@ -181,8 +167,7 @@
     }
 
     function renderChatList() {
-        const list = document.getElementById("chatList");
-        list.innerHTML = allChats.map(c => `
+        document.getElementById("chatList").innerHTML = allChats.map(c => `
             <div class="chat-item-wrapper">
                 <div class="chat-item" onclick="loadChat(${c.id})">💬 ${c.title}...</div>
                 <div class="delete-btn" onclick="deleteChat(${c.id})">🗑️</div>
@@ -194,15 +179,14 @@
         const chat = allChats.find(c => c.id === id);
         currentChat = [...chat.data];
         document.getElementById("chat-box").innerHTML = "";
-        currentChat.forEach(m => addMsg(m.role, m.text));
+        currentChat.forEach(m => addMsg(m.role, m.content));
     }
 
     function deleteChat(id) {
-        if(confirm("Bu sohbeti silmek istiyor musun?")) {
+        if(confirm("Silinsin mi?")) {
             allChats = allChats.filter(c => c.id !== id);
             localStorage.setItem('mirkay_chats', JSON.stringify(allChats));
             renderChatList();
-            if(currentChat.length > 0) startNewChat();
         }
     }
 
@@ -211,19 +195,25 @@
         const t = i.value.trim();
         if(!t) return;
         addMsg("user", t);
-        currentChat.push({role: "user", text: t});
+        currentChat.push({role: "user", content: t});
         i.value = "";
         try {
             const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${M_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ model: "llama-3.1-8b-instant", messages: [{role: "system", content: "Sen Mirkay-AI'sın."}, ...currentChat] })
+                body: JSON.stringify({ 
+                    model: "llama3-8b-8192", 
+                    messages: [{role: "system", content: "Sen Mirkay-AI'sın."}, ...currentChat] 
+                })
             });
             const d = await r.json();
             const reply = d.choices[0].message.content;
             addMsg("ai", reply);
-            currentChat.push({role: "ai", text: reply});
-        } catch(e) { addMsg("ai", "Bağlantı hatası!"); }
+            currentChat.push({role: "ai", content: reply});
+        } catch(e) { 
+            console.error(e);
+            addMsg("ai", "Bağlantı hatası! Konsolu kontrol et."); 
+        }
     }
 
     function addMsg(r, t) {
