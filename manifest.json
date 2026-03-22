@@ -1,15 +1,18 @@
 {
-  "name": "Mirkay-AI",
+  "name": "Mirkay-AI Official",
   "short_name": "MirkayAI",
-  "start_url": "/index.html",
+  "description": "Mirkay-AI ile gelişmiş yapay zeka deneyimi.",
+  "start_url": "/mirac-A-/index.html",
   "display": "standalone",
   "background_color": "#212121",
   "theme_color": "#10a37f",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/1698/1698535.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
