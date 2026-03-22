@@ -2,8 +2,8 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mirkay-AI Official</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mirkay-AI | Official</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#10a37f">
@@ -14,70 +14,100 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        :root { --bg: #212121; --sidebar: #171717; --text: #ececec; --gpt-green: #10a37f; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        :root { --bg: #212121; --sidebar: #171717; --text: #ececec; --gpt-green: #10a37f; --input-bg: #2f2f2f; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* HAMBURGER MENÜ BUTONU (Masaüstünde Gizli, Mobilde Görünür) */
+        /* HAMBURGER MENÜ */
         #menuToggle {
             display: none;
             position: fixed;
-            top: 10px;
-            left: 10px;
+            top: env(safe-area-inset-top, 15px);
+            left: 15px;
             z-index: 2000;
-            background: #2f2f2f;
+            background: var(--input-bg);
             color: white;
             border: 1px solid #444;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
             cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* SIDEBAR AYARLARI */
+        /* SIDEBAR */
         #sidebar { 
             width: 260px; 
             background: var(--sidebar); 
             display: flex; 
             flex-direction: column; 
-            padding: 10px; 
-            transition: 0.3s ease;
+            padding: 15px 10px; 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1500;
             border-right: 1px solid #333;
         }
 
-        /* MOBİL TASARIM DOKUNUŞLARI */
+        /* MOBİL AYARLAR */
         @media (max-width: 768px) {
-            #menuToggle { display: block; } /* Mobilde 3 çizgiyi göster */
+            #menuToggle { display: block; }
             #sidebar {
                 position: fixed;
-                left: -260px; /* Başlangıçta ekran dışında */
+                transform: translateX(-100%);
                 height: 100%;
             }
-            #sidebar.open { left: 0; } /* Menü açılınca içeri kay */
-            #chat-box { padding: 60px 15px 120px 15px !important; }
-            .input-area { padding: 10px 10px 25px 10px !important; }
+            #sidebar.open { transform: translateX(0); }
+            #chat-box { padding: 80px 15px 160px 15px !important; }
+            
+            /* GİRİŞ ALANINI YUKARI ÇEKEN KISIM */
+            .input-area { 
+                padding: 10px 15px 45px 15px !important; /* Alt boşluk artırıldı */
+            }
+            .input-box {
+                margin-bottom: env(safe-area-inset-bottom, 10px);
+            }
         }
 
-        #installBtn { background: var(--gpt-green); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; font-weight: bold; width: 100%; }
-        .new-chat { border: 1px solid #4d4d4d; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-size: 14px; text-align: center; }
+        #installBtn { background: var(--gpt-green); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-weight: bold; width: 100%; display: none; }
+        .new-chat { border: 1px solid #4d4d4d; padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 20px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
         #chatList { flex: 1; overflow-y: auto; }
-        .history-item { padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 5px; background: rgba(255,255,255,0.03); }
+        .history-item { padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border: 1px solid transparent; }
+        .history-item:hover { border-color: #444; }
 
-        /* ANA SOHBET ALANI */
+        /* ANA EKRAN */
         #main { flex: 1; display: flex; flex-direction: column; position: relative; width: 100%; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 30px 20% 150px 20%; display: flex; flex-direction: column; gap: 20px; }
-        .msg { display: flex; gap: 15px; padding: 15px; border-radius: 10px; line-height: 1.6; }
-        .ai-msg { background: rgba(255,255,255,0.02); }
+        #chat-box { flex: 1; overflow-y: auto; padding: 40px 18% 150px 18%; display: flex; flex-direction: column; gap: 25px; scroll-behavior: smooth; }
         
-        .input-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 20% 40px 20%; background: linear-gradient(transparent, var(--bg) 50%); }
-        .input-box { background: #2f2f2f; display: flex; align-items: center; padding: 12px 18px; border-radius: 12px; border: 1px solid #4d4d4d; }
-        input#uInp { flex: 1; background: none; border: none; color: white; outline: none; font-size: 16px; }
+        .msg { display: flex; gap: 15px; padding: 15px; border-radius: 12px; max-width: 95%; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .ai-msg { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
+        .msg i { width: 32px; height: 32px; background: #444; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
+        .ai-icon { background: var(--gpt-green) !important; color: white; }
+        .msg-content { flex: 1; font-size: 15px; line-height: 1.6; word-wrap: break-word; }
 
-        /* KARARTMA KATMANI */
-        #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1400; }
+        /* MESAJ YAZMA ALANI */
+        .input-area { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            padding: 20px 18% 40px 18%; 
+            background: linear-gradient(transparent, var(--bg) 40%); 
+            z-index: 100;
+        }
+        .input-box { 
+            background: var(--input-bg); 
+            display: flex; 
+            align-items: center; 
+            padding: 10px 15px; 
+            border-radius: 16px; 
+            border: 1px solid #4d4d4d; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        input#uInp { flex: 1; background: none; border: none; color: white; outline: none; font-size: 16px; padding: 10px; }
+
+        #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1400; backdrop-filter: blur(2px); }
         
         #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: #171717; padding: 30px; border-radius: 20px; width: 320px; text-align: center; }
+        .auth-card { background: #171717; padding: 35px; border-radius: 24px; width: 90%; max-width: 360px; text-align: center; border: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -87,32 +117,35 @@
 
 <div id="auth-screen">
     <div class="auth-card">
-        <h2 style="color:var(--gpt-green); margin-bottom:20px;">Mirkay-AI</h2>
-        <input type="email" id="authEmail" style="width:100%; padding:12px; margin-bottom:10px; background:#212121; border:1px solid #333; color:white; border-radius:8px;" placeholder="E-posta">
-        <input type="password" id="authPass" style="width:100%; padding:12px; margin-bottom:20px; background:#212121; border:1px solid #333; color:white; border-radius:8px;" placeholder="Şifre">
-        <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--gpt-green); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Devam Et</button>
+        <h1 style="color:var(--gpt-green); margin-bottom:10px; letter-spacing: -1px;">Mirkay-AI</h1>
+        <p style="color:#888; margin-bottom:25px; font-size: 14px;">Lütfen hesabınıza giriş yapın</p>
+        <input type="email" id="authEmail" style="width:100%; padding:14px; margin-bottom:12px; background:#212121; border:1px solid #333; color:white; border-radius:12px; outline:none;" placeholder="E-posta">
+        <input type="password" id="authPass" style="width:100%; padding:14px; margin-bottom:25px; background:#212121; border:1px solid #333; color:white; border-radius:12px; outline:none;" placeholder="Şifre">
+        <button onclick="handleAuth()" style="width:100%; padding:15px; background:var(--gpt-green); color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:16px;">Giriş Yap / Kayıt Ol</button>
     </div>
 </div>
 
 <div id="sidebar">
-    <button id="installBtn" onclick="triggerInstall()" style="display:none;">Uygulamayı Yükle</button>
+    <button id="installBtn" onclick="triggerInstall()"><i class="fa fa-download"></i> Uygulamayı Yükle</button>
     <div class="new-chat" onclick="resetChat(); if(window.innerWidth < 768) toggleSidebar();"><i class="fa fa-plus"></i> Yeni Sohbet</div>
     <div id="chatList"></div>
-    <div style="padding:10px; border-top:1px solid #333; margin-top:auto;">
-        <span id="uEmail" style="font-size:11px; opacity:0.5;"></span>
-        <div onclick="firebase.auth().signOut().then(()=>location.reload())" style="color:#ff4d4d; cursor:pointer; font-size:12px; margin-top:5px;">Çıkış Yap</div>
+    <div style="padding:15px; border-top:1px solid #333; margin-top:auto; display:flex; flex-direction:column; gap:8px;">
+        <span id="uEmail" style="font-size:12px; color:var(--gpt-green); font-weight:600;"></span>
+        <div onclick="firebase.auth().signOut().then(()=>location.reload())" style="color:#ff4d4d; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:8px;"><i class="fa fa-right-from-bracket"></i> Çıkış Yap</div>
     </div>
 </div>
 
 <div id="main">
-    <div id="chat-box"></div>
+    <div id="chat-box">
+        <div style="text-align:center; margin-top:15vh; opacity:0.2;"><h2>Size nasıl yardımcı olabilirim?</h2></div>
+    </div>
     <div class="input-area">
         <div class="input-box">
             <input type="file" id="fileInp" hidden accept="image/*" onchange="previewImg(this)">
-            <i id="clipIcon" class="fa fa-paperclip" onclick="checkPremiumAndOpen()" style="cursor:pointer; color:#888; display:none; margin-right:10px;"></i>
-            <img id="imgPrev" style="height:40px; display:none; border-radius:5px; margin-right:10px;">
-            <input type="text" id="uInp" placeholder="Mesaj yazın..." onkeypress="if(event.key==='Enter') send()">
-            <i class="fa fa-arrow-up" onclick="send()" style="cursor:pointer; background:white; color:black; padding:8px; border-radius:8px; margin-left:10px;"></i>
+            <i id="clipIcon" class="fa fa-paperclip" onclick="checkPremiumAndOpen()" style="cursor:pointer; color:#888; display:none; font-size:20px;"></i>
+            <img id="imgPrev" style="height:45px; display:none; border-radius:8px; margin-right:12px; border: 2px solid var(--gpt-green);">
+            <input type="text" id="uInp" placeholder="Mirkay-AI'a bir şeyler sor..." onkeypress="if(event.key==='Enter') send()">
+            <i class="fa fa-circle-arrow-up" onclick="send()" style="cursor:pointer; color:var(--gpt-green); font-size:32px; margin-left:10px;"></i>
         </div>
     </div>
 </div>
@@ -154,7 +187,6 @@
         }
     });
 
-    // PWA Kurulum Butonu Mantığı
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault(); deferredPrompt = e;
@@ -180,7 +212,7 @@
             currentChatId = Date.now().toString();
             document.getElementById("chat-box").innerHTML = "";
             await db.collection("users").doc(currentUser.uid).collection("chats").doc(currentChatId).set({
-                title: text ? text.substring(0,15) : "Yeni Sohbet", messages: [], date: Date.now()
+                title: text ? text.substring(0,25) : "Resim Analizi", messages: [], date: Date.now()
             });
             loadHistory();
         }
@@ -207,15 +239,16 @@
             addMsg("assistant", reply);
             currentChat.push({ role: "assistant", content: reply });
             await db.collection("users").doc(currentUser.uid).collection("chats").doc(currentChatId).update({ messages: currentChat });
-        } catch(e) { addMsg("assistant", "Bir hata oluştu."); }
+        } catch(e) { addMsg("assistant", "Bağlantı hatası oluştu."); }
     }
 
     function addMsg(r, t, img) {
         const box = document.getElementById("chat-box");
         const div = document.createElement("div");
         div.className = r === 'assistant' ? "msg ai-msg" : "msg";
-        let imgTag = img ? `<img src="${img}" style="max-width:100%; border-radius:10px; margin-top:10px;"><br>` : "";
-        div.innerHTML = `<div class="msg-content"><b>${r === 'user' ? 'Siz' : 'Mirkay-AI'}</b><br>${imgTag}${t}</div>`;
+        const icon = r === 'user' ? '<i class="fa fa-user"></i>' : '<i class="fa fa-robot ai-icon"></i>';
+        let imgTag = img ? `<img src="${img}" style="max-width:100%; border-radius:12px; margin-top:10px; border:1px solid #444;"><br>` : "";
+        div.innerHTML = `${icon}<div class="msg-content"><b>${r === 'user' ? 'Siz' : 'Mirkay-AI'}</b><br>${imgTag}${t}</div>`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
@@ -223,17 +256,17 @@
     async function loadHistory() {
         const list = document.getElementById("chatList");
         list.innerHTML = "";
-        const snap = await db.collection("users").doc(currentUser.uid).collection("chats").orderBy("date", "desc").limit(5).get();
+        const snap = await db.collection("users").doc(currentUser.uid).collection("chats").orderBy("date", "desc").limit(8).get();
         snap.forEach(doc => {
             const item = document.createElement("div");
             item.className = "history-item";
-            item.innerHTML = `<i class="fa fa-message"></i> ${doc.data().title}`;
+            item.innerHTML = `<i class="fa fa-comment-dots" style="color:var(--gpt-green)"></i> ${doc.data().title}`;
             item.onclick = () => {
                 currentChatId = doc.id;
                 currentChat = doc.data().messages;
                 document.getElementById("chat-box").innerHTML = "";
                 currentChat.forEach(m => {
-                    let text = typeof m.content === 'string' ? m.content : m.content[0].text;
+                    let text = typeof m.content === 'string' ? m.content : (m.content[0] ? m.content[0].text : "");
                     let img = Array.isArray(m.content) && m.content[1] ? m.content[1].image_url.url : null;
                     addMsg(m.role, text, img);
                 });
@@ -243,9 +276,10 @@
         });
     }
 
-    function resetChat() { currentChatId = null; currentChat = []; document.getElementById("chat-box").innerHTML = ""; }
+    function resetChat() { currentChatId = null; currentChat = []; document.getElementById("chat-box").innerHTML = '<div style="text-align:center; margin-top:15vh; opacity:0.2;"><h2>Size nasıl yardımcı olabilirim?</h2></div>'; }
     async function handleAuth() {
         const e = document.getElementById("authEmail").value, p = document.getElementById("authPass").value;
+        if(!e || !p) return alert("Lütfen boş alan bırakmayın.");
         await firebase.auth().signInWithEmailAndPassword(e, p).catch(() => firebase.auth().createUserWithEmailAndPassword(e, p));
     }
     function previewImg(i) {
@@ -253,7 +287,7 @@
         r.onload = (e) => { selectedImgBase64 = e.target.result; const p = document.getElementById("imgPrev"); p.src = e.target.result; p.style.display = "block"; };
         r.readAsDataURL(i.files[0]);
     }
-    function checkPremiumAndOpen() { if(isPremium) document.getElementById('fileInp').click(); else alert("PRO üyelik gerekli."); }
+    function checkPremiumAndOpen() { if(isPremium) document.getElementById('fileInp').click(); else alert("Görsel analizi PRO üyelik gerektirir."); }
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 </script>
 </body>
