@@ -3,25 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mirkay-AI | v4.2.1</title>
+    <title>Mirkay-AI | Official App</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10a37f">
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         :root { --bg: #212121; --sidebar: #171717; --text: #ececec; --input-bg: #2f2f2f; --gpt-green: #10a37f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar Tasarımı */
+        /* Sidebar ve Buton */
         #sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; padding: 10px; border-right: 1px solid #333; }
-        .new-chat { border: 1px solid #4d4d4d; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 14px; transition: 0.2s; }
-        .new-chat:hover { background: #2d2d2d; }
+        
+        #installBtn { 
+            display: none; /* JS ile açılacak */
+            background: var(--gpt-green); 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .new-chat { border: 1px solid #4d4d4d; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 14px; }
         #chatList { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
         .history-item { padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 10px; }
-        .history-item:hover { background: #2d2d2d; color: #fff; }
+        .history-item:hover { background: #2d2d2d; }
 
-        /* Ana Sohbet Alanı */
+        /* Sohbet Alanı */
         #main { flex: 1; display: flex; flex-direction: column; position: relative; }
         #chat-box { flex: 1; overflow-y: auto; padding: 50px 15% 150px 15%; display: flex; flex-direction: column; gap: 25px; }
         .msg { display: flex; gap: 20px; padding: 10px; border-radius: 12px; }
@@ -30,18 +48,14 @@
         .msg-content { flex: 1; font-size: 15px; line-height: 1.6; word-wrap: break-word; }
         .msg img { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid #444; }
 
-        /* Giriş Alanı */
+        /* Input */
         .input-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 15% 40px 15%; background: linear-gradient(transparent, var(--bg) 40%); }
         .input-box { background: var(--input-bg); display: flex; align-items: center; padding: 12px 20px; border-radius: 15px; border: 1px solid #4d4d4d; gap: 15px; }
         input#uInp { flex: 1; background: none; border: none; color: white; outline: none; font-size: 16px; }
         #imgPrev { display: none; height: 50px; border-radius: 8px; border: 2px solid var(--gpt-green); margin-right: 10px; }
 
-        /* Kullanıcı Profili */
         .user-profile { margin-top: auto; padding: 15px; border-top: 1px solid #333; position: relative; cursor: pointer; display: flex; align-items: center; gap: 12px; }
         .user-menu { position: absolute; bottom: 75px; left: 10px; background: #2d2d2d; border-radius: 12px; width: 230px; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.6); z-index: 1000; }
-        .user-menu div { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #3d3d3d; }
-
-        /* Auth Ekranı */
         #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: #171717; padding: 40px; border-radius: 24px; width: 380px; text-align: center; border: 1px solid #333; }
     </style>
@@ -53,16 +67,17 @@
         <h2 style="margin-bottom:20px; color: var(--gpt-green)">MIRKAY-AI</h2>
         <input type="email" id="authEmail" style="width:100%; padding:14px; margin:10px 0; border-radius:10px; background:#212121; border:1px solid #333; color:white;" placeholder="E-posta">
         <input type="password" id="authPass" style="width:100%; padding:14px; margin:10px 0; border-radius:10px; background:#212121; border:1px solid #333; color:white;" placeholder="Şifre">
-        <button onclick="handleAuth()" style="width:100%; padding:15px; background:var(--gpt-green); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:15px;">Giriş Yap</button>
+        <button onclick="handleAuth()" style="width:100%; padding:15px; background:var(--gpt-green); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:15px;">Giriş Yap / Kayıt Ol</button>
     </div>
 </div>
 
 <div id="sidebar">
+    <button id="installBtn" onclick="triggerInstall()"><i class="fa fa-download"></i> Uygulamayı Yükle</button>
     <div class="new-chat" onclick="resetChat()"><i class="fa fa-plus"></i> Yeni Sohbet</div>
     <div id="chatList"></div>
     <div class="user-profile" onclick="toggleMenu()">
         <i class="fa fa-circle-user" style="font-size:30px; color: #888;"></i>
-        <div style="flex:1; overflow:hidden;"><p id="uEmail" style="font-size:13px; font-weight:600;">Yükleniyor...</p></div>
+        <div style="flex:1; overflow:hidden;"><p id="uEmail" style="font-size:13px; font-weight:600;">Bekleniyor...</p></div>
         <div class="user-menu" id="userMenu">
             <div id="uStatus">Statü: Free</div>
             <div onclick="firebase.auth().signOut().then(()=>location.reload())" style="color:#ff4d4d; cursor:pointer;"><i class="fa fa-right-from-bracket"></i> Çıkış Yap</div>
@@ -71,11 +86,7 @@
 </div>
 
 <div id="main">
-    <div id="chat-box">
-        <div style="text-align:center; margin-top:20vh; opacity:0.3;" id="welcome">
-            <h1 style="font-size:35px">Size nasıl yardımcı olabilirim?</h1>
-        </div>
-    </div>
+    <div id="chat-box"></div>
     <div class="input-area">
         <div class="input-box">
             <input type="file" id="fileInp" hidden accept="image/*" onchange="previewImg(this)">
@@ -88,6 +99,37 @@
 </div>
 
 <script>
+    // 1. ZORLU YÜKLEME MANTIĞI
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'block';
+    });
+
+    // Uygulama olarak açılmamışsa butonu her zaman göster (Firefox/Chrome fark etmez)
+    if (!window.matchMedia('(display-mode: standalone)').matches) {
+        installBtn.style.display = 'block';
+    }
+
+    async function triggerInstall() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') installBtn.style.display = 'none';
+            deferredPrompt = null;
+        } else {
+            alert("Lütfen tarayıcı menüsünden 'Ana Ekrana Ekle' seçeneğini kullanın.");
+        }
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+
+    // 2. FIREBASE & API
     const firebaseConfig = {
       apiKey: "AIzaSyC_dfVhnWnRBPiLC4YiMqWkjCoIL18b04U",
       authDomain: "mirkay-ai-7b690.firebaseapp.com",
@@ -122,26 +164,18 @@
         }
     });
 
-    function checkPremiumAndOpen() {
-        if(isPremium) document.getElementById('fileInp').click();
-        else alert("Resim analizi sadece PRO üyeler içindir!");
-    }
-
     async function send() {
         const inp = document.getElementById("uInp");
         if(!inp.value.trim() && !selectedImgBase64) return;
-        
         const text = inp.value;
         const img = selectedImgBase64;
         
         if(!currentChatId) {
             currentChatId = Date.now().toString();
             document.getElementById("chat-box").innerHTML = "";
-            const title = text ? text.split(" ").slice(0, 2).join(" ") : "Resim Analizi";
+            const title = text ? text.split(" ").slice(0, 3).join(" ") : "Resim Analizi";
             await db.collection("users").doc(currentUser.uid).collection("chats").doc(currentChatId).set({
-                title: title,
-                messages: [],
-                date: Date.now()
+                title: title, messages: [], date: Date.now()
             });
             loadHistory();
         }
@@ -170,7 +204,7 @@
             addMsg("assistant", reply);
             currentChat.push({ role: "assistant", content: reply });
             await db.collection("users").doc(currentUser.uid).collection("chats").doc(currentChatId).update({ messages: currentChat });
-        } catch(e) { addMsg("assistant", "Hata oluştu!"); }
+        } catch(e) { addMsg("assistant", "Hata: " + e.message); }
     }
 
     function addMsg(r, t, img) {
@@ -208,6 +242,11 @@
         });
     }
 
+    function checkPremiumAndOpen() {
+        if(isPremium) document.getElementById('fileInp').click();
+        else alert("Resim analizi sadece PRO üyeler içindir!");
+    }
+
     function previewImg(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -220,10 +259,11 @@
         }
     }
 
-    function resetChat() { currentChatId = null; currentChat = []; document.getElementById("chat-box").innerHTML = '<div style="text-align:center; margin-top:20vh; opacity:0.3;"><h1>Size nasıl yardımcı olabilirim?</h1></div>'; }
+    function resetChat() { currentChatId = null; currentChat = []; document.getElementById("chat-box").innerHTML = ""; }
     function toggleMenu() { const m = document.getElementById("userMenu"); m.style.display = m.style.display === "block" ? "none" : "block"; }
     async function handleAuth() {
         const e = document.getElementById("authEmail").value, p = document.getElementById("authPass").value;
+        if(!e || !p) return alert("Bilgileri girin!");
         await firebase.auth().signInWithEmailAndPassword(e, p).catch(() => firebase.auth().createUserWithEmailAndPassword(e, p));
     }
 </script>
