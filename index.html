@@ -3,57 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mirkay-AI | v3.9.5</title>
+    <title>Mirkay-AI | v4.0.0</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #050505; --sidebar: #0d0d0d; --text: #ececec; --gold: #ffd700; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid #222; display: flex; flex-direction: column; }
-        .premium-btn { margin: 15px; padding: 12px; background: linear-gradient(45deg, var(--gold), #ff8c00); color: #000; border-radius: 8px; text-align: center; font-weight: 900; cursor: pointer; font-size: 13px; }
+        :root { --bg: #212121; --sidebar: #171717; --text: #ececec; --input-bg: #2f2f2f; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoue UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; }
+        
+        /* Sidebar */
+        #sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; padding: 10px; transition: 0.3s; }
+        .new-chat { border: 1px solid #4d4d4d; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; transition: 0.2s; font-size: 14px; }
+        .new-chat:hover { background: #2d2d2d; }
+        #chatList { flex: 1; overflow-y: auto; }
+        .history-item { padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item:hover { background: #2d2d2d; }
+
+        /* Ana Ekran */
         #main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .header { height: 60px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
-        .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; background: #222; font-weight: bold; }
-        .pro-badge { background: var(--gold) !important; color: #000 !important; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 15px; }
-        .msg { padding: 12px 18px; border-radius: 15px; max-width: 80%; font-size: 14px; }
-        .user { background: #1a1a1a; align-self: flex-end; border: 1px solid #333; }
-        .ai { background: #fff; color: #000; align-self: flex-start; }
-        .input-area { padding: 20px 15% 40px 15%; }
-        .input-box { background: #111; display: flex; padding: 10px 20px; border-radius: 35px; border: 1px solid #333; }
-        input#uInp { flex: 1; background: none; border: none; color: #fff; outline: none; }
-        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: #0a0a0a; padding: 30px; border-radius: 20px; border: 1px solid #222; width: 320px; text-align: center; }
-        .auth-card input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; background: #000; border: 1px solid #333; color: #fff; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 50px 15% 100px 15%; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* Mesaj Stilleri */
+        .msg { display: flex; gap: 15px; max-width: 100%; padding: 10px; border-radius: 8px; line-height: 1.6; }
+        .msg i { width: 30px; height: 30px; background: #444; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 14px; }
+        .ai-icon { background: #10a37f !important; color: white; }
+        .msg-content { flex: 1; font-size: 15px; }
+
+        /* Input Alanı */
+        .input-container { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 15% 40px 15%; background: linear-gradient(transparent, var(--bg) 20%); }
+        .input-box { background: var(--input-bg); display: flex; align-items: center; padding: 12px 18px; border-radius: 12px; border: 1px solid #4d4d4d; }
+        input { flex: 1; background: none; border: none; color: white; outline: none; font-size: 16px; }
+        
+        /* Profil ve Çıkış */
+        .user-profile { margin-top: auto; padding: 10px; border-top: 1px solid #333; position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .user-menu { position: absolute; bottom: 60px; left: 10px; background: #2d2d2d; border-radius: 8px; width: 200px; display: none; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .user-menu div { padding: 12px; font-size: 14px; border-bottom: 1px solid #333; }
+        .user-menu div:hover { background: #3d3d3d; }
+
+        /* Login */
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #171717; padding: 40px; border-radius: 12px; width: 350px; text-align: center; border: 1px solid #333; }
+        input.auth-inp { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; background: #212121; border: 1px solid #333; color: white; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="auth-card">
-        <h2>MIRKAY-AI</h2>
-        <input type="email" id="authEmail" placeholder="Gmail Adresiniz">
-        <input type="password" id="authPass" placeholder="Şifreniz">
-        <button onclick="handleAuth()" style="width:100%; padding:10px; background:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Giriş / Kayıt</button>
+        <h2 style="margin-bottom:20px">Mirkay-AI</h2>
+        <input type="email" id="authEmail" class="auth-inp" placeholder="E-posta">
+        <input type="password" id="authPass" class="auth-inp" placeholder="Şifre">
+        <button onclick="handleAuth()" style="width:100%; padding:12px; background:#10a37f; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold; margin-top:10px;">Devam Et</button>
     </div>
 </div>
 
 <div id="sidebar">
-    <div class="premium-btn">💎 PREMIUM AKTİF</div>
+    <div class="new-chat" onclick="resetChat()">
+        <i class="fa fa-plus"></i> Yeni Sohbet
+    </div>
+    <div id="chatList"></div>
+    
+    <div class="user-profile" onclick="toggleMenu()">
+        <i class="fa fa-user-circle" style="font-size:24px"></i>
+        <span id="userEmailDisplay" style="font-size:13px; overflow:hidden">Kullanıcı</span>
+        <div class="user-menu" id="userMenu">
+            <div id="userStatus">Statü: Free</div>
+            <div onclick="firebase.auth().signOut().then(()=>location.reload())" style="color:#ff4d4d"><i class="fa fa-sign-out"></i> Çıkış Yap</div>
+        </div>
+    </div>
 </div>
 
 <div id="main">
-    <div class="header">
-        <div style="font-weight:900;">MIRKAY-AI <span id="userStatus" class="status-badge">FREE</span></div>
-        <button onclick="firebase.auth().signOut().then(() => location.reload())" style="background:none; color:#ff4d4d; border:none; cursor:pointer;">Çıkış</button>
+    <div id="chat-box">
+        <div style="text-align:center; margin-top:20vh; opacity:0.5;" id="welcome-text">
+            <h1 style="font-size:32px">Size nasıl yardımcı olabilirim?</h1>
+        </div>
     </div>
-    <div id="chat-box"></div>
-    <div class="input-area">
+    
+    <div class="input-container">
         <div class="input-box">
-            <input type="text" id="uInp" placeholder="Mesaj yazın..." onkeypress="if(event.key==='Enter') send()">
-            <button onclick="send()" style="background:#fff; border:none; border-radius:50%; width:30px; height:30px;">↑</button>
+            <input type="text" id="uInp" placeholder="Mirkay-AI'a mesaj gönderin..." onkeypress="if(event.key==='Enter') send()">
+            <i class="fa fa-arrow-up" onclick="send()" style="cursor:pointer; background:white; color:black; padding:8px; border-radius:8px"></i>
         </div>
     </div>
 </div>
@@ -70,8 +102,6 @@
     
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    
-    // YENİ ANAHTARINI BURAYA YAPIŞTIR
     const M_KEY = "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";
 
     let isPremium = false;
@@ -80,16 +110,11 @@
     firebase.auth().onAuthStateChanged((user) => {
         if(user) {
             document.getElementById("auth-screen").style.display = "none";
+            document.getElementById("userEmailDisplay").innerText = user.email;
             db.collection("users").doc(user.uid).get().then((doc) => {
-                if (!doc.exists) {
-                    db.collection("users").doc(user.uid).set({ email: user.email, isPremium: false });
-                } else {
-                    isPremium = doc.data().isPremium;
-                    if(isPremium) {
-                        const badge = document.getElementById("userStatus");
-                        badge.innerText = "PRO";
-                        badge.classList.add("pro-badge");
-                    }
+                if (doc.exists && doc.data().isPremium) {
+                    isPremium = true;
+                    document.getElementById("userStatus").innerText = "Statü: PRO ✨";
                 }
             });
         } else {
@@ -97,13 +122,12 @@
         }
     });
 
-    async function handleAuth() {
-        const e = document.getElementById("authEmail").value;
-        const p = document.getElementById("authPass").value;
-        try {
-            await firebase.auth().signInWithEmailAndPassword(e, p)
-                .catch(() => firebase.auth().createUserWithEmailAndPassword(e, p));
-        } catch(err) { alert("Hata: " + err.message); }
+    function resetChat() {
+        currentChat = [];
+        document.getElementById("chat-box").innerHTML = `
+            <div style="text-align:center; margin-top:20vh; opacity:0.5;" id="welcome-text">
+                <h1 style="font-size:32px">Size nasıl yardımcı olabilirim?</h1>
+            </div>`;
     }
 
     async function send() {
@@ -111,6 +135,11 @@
         if(!inp.value.trim()) return;
         
         const val = inp.value;
+        if(currentChat.length === 0) {
+            document.getElementById("chat-box").innerHTML = ""; // Hoşgeldin yazısını sil
+            addHistoryItem(val);
+        }
+        
         addMsg("user", val);
         currentChat.push({ role: "user", content: val });
         inp.value = "";
@@ -125,23 +154,42 @@
                 })
             });
             const d = await res.json();
-            if(d.choices) {
-                const reply = d.choices[0].message.content;
-                addMsg("assistant", reply);
-                currentChat.push({ role: "assistant", content: reply });
-            } else {
-                addMsg("assistant", "API Hatası: " + d.error.message);
-            }
-        } catch(e) { addMsg("assistant", "Bağlantı koptu!"); }
+            const reply = d.choices[0].message.content;
+            addMsg("assistant", reply);
+            currentChat.push({ role: "assistant", content: reply });
+        } catch(e) { addMsg("assistant", "Hata oluştu."); }
     }
 
     function addMsg(r, t) {
         const box = document.getElementById("chat-box");
-        const d = document.createElement("div");
-        d.className = `msg ${r === 'user' ? 'user' : 'ai'}`;
-        d.innerHTML = `<b>${r === 'user' ? 'Sen' : 'Mirkay-AI'}</b>:<br>${t}`;
-        box.appendChild(d);
+        const div = document.createElement("div");
+        div.className = "msg";
+        const icon = r === 'user' ? '<i class="fa fa-user"></i>' : '<i class="fa fa-robot ai-icon"></i>';
+        div.innerHTML = `${icon}<div class="msg-content"><b>${r === 'user' ? 'Siz' : 'Mirkay-AI'}</b><br>${t}</div>`;
+        box.appendChild(div);
         box.scrollTop = box.scrollHeight;
+    }
+
+    function addHistoryItem(text) {
+        const list = document.getElementById("chatList");
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `<i class="fa fa-message" style="margin-right:10px"></i> ${text}`;
+        list.prepend(item);
+    }
+
+    function toggleMenu() {
+        const m = document.getElementById("userMenu");
+        m.style.display = m.style.display === "block" ? "none" : "block";
+    }
+
+    async function handleAuth() {
+        const e = document.getElementById("authEmail").value;
+        const p = document.getElementById("authPass").value;
+        try {
+            await firebase.auth().signInWithEmailAndPassword(e, p)
+                .catch(() => firebase.auth().createUserWithEmailAndPassword(e, p));
+        } catch(err) { alert(err.message); }
     }
 </script>
 </body>
